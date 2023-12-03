@@ -63,11 +63,14 @@ impl Map {
     }
   }
 
-  pub fn valid_numbers(&self) -> Vec<u64> {
+  pub fn valid_numbers(&self) -> (Vec<u64>, HashMap<(usize, usize), Vec<u64>>) {
     let mut valid: Vec<u64> = Vec::new();
+    let mut gears: HashMap<(usize, usize), Vec<u64>> = HashMap::new();
 
     for (number_str, num_pos) in &self.numbers {
-      'outer: for (rx, cx) in num_pos {
+      let mut pushed = false;
+
+      for (rx, cx) in num_pos {
         for row in 0..3 {
           if rx == &0 && row == 0 { continue; }
 
@@ -76,15 +79,27 @@ impl Map {
 
             let check_pos = (rx + row - 1, cx + col - 1);
 
-            if let Some(_) = self.symbols.get(&check_pos) {
-              valid.push(number_str.parse::<u64>().expect("something broke when parsing num"));
-              break 'outer; // get out of checking current number str
+            if let Some(char) = self.symbols.get(&check_pos) {
+              if !pushed {
+                let number = number_str.parse::<u64>().expect("something broke when parsing num");
+
+                if char == &'*' {
+                  if !gears.contains_key(&check_pos) {
+                    gears.insert(check_pos.clone(), Vec::new());
+                  }
+
+                  gears.get_mut(&check_pos).unwrap().push(number.clone());
+                }
+
+                pushed = true;
+                valid.push(number);
+              }
             }
           }
         }
       }
     }
 
-    valid
+    (valid, gears)
   }
 }
