@@ -23,12 +23,12 @@ fn part_one(card_table: &String) {
 
 pub fn run() {
   println!("### TEST ###");
-  let test_card_table = read_input("src/advent/day_04/test");
+  let test_card_table = read_input("day_04/test");
   part_one(&test_card_table);
   part_two(&test_card_table);
   
   println!("### SOLUTION ###");
-  let input_card_table = read_input("src/advent/day_04/input");
+  let input_card_table = read_input("day_04/input");
   part_one(&input_card_table);
   part_two(&input_card_table);
 }

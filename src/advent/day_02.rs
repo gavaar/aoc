@@ -37,10 +37,10 @@ fn add_game_powers(file: &str) -> usize {
 pub fn run() {
   println!("### PART ONE ###");
   println!("-- Test --");
-  println!("The value is: {}", add_game_ids("src/advent/day_02/test"));
-  println!("The power sum is: {}", add_game_powers("src/advent/day_02/test"));
+  println!("The value is: {}", add_game_ids("day_02/test"));
+  println!("The power sum is: {}", add_game_powers("day_02/test"));
   
   println!("-- Solution part 1 --");
-  println!("The value of game 1 is: {}", add_game_ids("src/advent/day_02/input"));
-  println!("The power sum is: {}", add_game_powers("src/advent/day_02/input"));
+  println!("The value of game 1 is: {}", add_game_ids("day_02/input"));
+  println!("The power sum is: {}", add_game_powers("day_02/input"));
 }

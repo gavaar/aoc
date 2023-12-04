@@ -33,14 +33,14 @@ fn part_two(file: &str) -> u32 {
 
 pub fn run() {
   println!("\n###  TEST  ###\n");
-  let test_sum_1 = part_one("src/advent/day_01/test");
-  let test_sum_2 = part_two("src/advent/day_01/test_2");
+  let test_sum_1 = part_one("day_01/test");
+  let test_sum_2 = part_two("day_01/test_2");
   println!("P1: test input sum is: {}", test_sum_1);
   println!("P2: test input sum is: {}", test_sum_2);
   
   println!("\n###  SOLUTION  ###\n");
-  let real_sum_1 = part_one("src/advent/day_01/input");
-  let real_sum_2 = part_two("src/advent/day_01/input");
+  let real_sum_1 = part_one("day_01/input");
+  let real_sum_2 = part_two("day_01/input");
   println!("P1 sum is: {}", real_sum_1);
   println!("P2 sum is: {}", real_sum_2);
 }
