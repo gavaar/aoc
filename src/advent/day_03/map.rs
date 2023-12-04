@@ -1,14 +1,8 @@
 use std::collections::HashMap;
 
-
-fn input_map(input: String) -> (Vec<Vec<char>>, HashMap<(usize, usize), char>, Vec<(String, Vec<(usize, usize)>)>) {
+fn input_map(input: String) -> (HashMap<(usize, usize), char>, Vec<(String, Vec<(usize, usize)>)>) {
   let cloned = input.clone();
-  let mut cloned_lines = cloned.lines();
 
-  let columns = cloned_lines.nth(0).unwrap().len();
-  let rows = cloned_lines.count() + 1;
-
-  let mut input_map = vec![vec![' '; columns]; rows];
   let mut symbols = HashMap::new();
   let mut numbers = Vec::new();
 
@@ -16,8 +10,6 @@ fn input_map(input: String) -> (Vec<Vec<char>>, HashMap<(usize, usize), char>, V
     let mut new_number: (String, Vec<(usize, usize)>) = (String::new(), Vec::new());
 
     for (cx, char) in line.chars().enumerate() {
-      input_map[rx][cx] = char;
-
       if char.is_numeric() {
         new_number.0.push(char);
         new_number.1.push((rx, cx));
@@ -38,28 +30,20 @@ fn input_map(input: String) -> (Vec<Vec<char>>, HashMap<(usize, usize), char>, V
     }
   }
 
-  (input_map, symbols, numbers)
+  (symbols, numbers)
 }
 
 pub struct Map {
-  input: Vec<Vec<char>>,
   symbols: HashMap<(usize, usize), char>,
   numbers: Vec<(String, Vec<(usize, usize)>)>,
-  row_len: usize,
-  col_len: usize,
 }
 impl Map {
   pub fn new(input: String) -> Map {
-    let (input, symbols, numbers) = input_map(input);
-    let row_len = input.len();
-    let col_len = input[0].len();
+    let (symbols, numbers) = input_map(input);
 
     Map {
-      input,
       symbols,
       numbers,
-      row_len,
-      col_len,
     }
   }
 
