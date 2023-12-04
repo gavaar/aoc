@@ -1,9 +1,10 @@
-use std::fs;
 mod game;
 pub use game::{Game, Round};
 
+use crate::shared::read_input;
+
 fn parse_input(file: &str, bag: Round) -> Vec<Game>  {
-  let read_file = fs::read_to_string(file).expect("error reading file");
+  let read_file = read_input(file);
   let mut games: Vec<Game> = Vec::new();
 
   for line in read_file.lines() {

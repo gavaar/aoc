@@ -1,7 +1,8 @@
 mod split_line;
-use std::fs;
 
 use split_line::split_line;
+
+use crate::shared::read_input;
 
 fn get_first_last_num(numbers: (char, char)) -> u32 {
   let first_last_num = format!("{}{}", numbers.0, numbers.1).parse::<u32>().expect("something went wrong when transforming to num");
@@ -11,7 +12,7 @@ fn get_first_last_num(numbers: (char, char)) -> u32 {
 }
 
 fn part_one(file: &str) -> u32 {
-  let read_file = fs::read_to_string(file).expect("error reading file");
+  let read_file = read_input(file);
   let lines = read_file.lines();
 
   let unparsed_numbers = lines.map(|line| split_line(line, false));
@@ -21,7 +22,7 @@ fn part_one(file: &str) -> u32 {
 }
 
 fn part_two(file: &str) -> u32 {
-  let read_file = fs::read_to_string(file).expect("error reading file");
+  let read_file = read_input(file);
   let lines = read_file.lines();
 
   let unparsed_numbers = lines.map(|line| split_line(line, true));

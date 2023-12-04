@@ -1,6 +1,7 @@
 use std::{io::{self, Write},process};
 
 mod advent;
+mod shared;
 
 fn main() {   
     let mut day_input = String::new();
