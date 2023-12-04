@@ -1,7 +1,7 @@
 mod game;
 pub use game::{Game, Round};
 
-use crate::shared::read_input;
+use crate::shared::{read_input, print_test, print_solution, Color};
 
 fn parse_input(file: &str, bag: Round) -> Vec<Game>  {
   let read_file = read_input(file);
@@ -35,12 +35,11 @@ fn add_game_powers(file: &str) -> usize {
 }
 
 pub fn run() {
-  println!("### PART ONE ###");
-  println!("-- Test --");
-  println!("The value is: {}", add_game_ids("day_02/test"));
-  println!("The power sum is: {}", add_game_powers("day_02/test"));
+  print_test();
+  println!("The value is: {}", Color::Red(add_game_ids("day_02/test")));
+  println!("The power sum is: {}\n", Color::Red(add_game_powers("day_02/test")));
   
-  println!("-- Solution part 1 --");
-  println!("The value of game 1 is: {}", add_game_ids("day_02/input"));
-  println!("The power sum is: {}", add_game_powers("day_02/input"));
+  print_solution();
+  println!("The value of game 1 is: {}", Color::Red(add_game_ids("day_02/input")));
+  println!("The power sum is: {}\n", Color::Red(add_game_powers("day_02/input")));
 }

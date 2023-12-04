@@ -1,7 +1,7 @@
 mod map;
 use map::Map;
 
-use crate::shared::read_input;
+use crate::shared::{read_input, print_test, print_solution, Color};
 
 fn read_map(location: &str) -> Map {
   let input = read_input(location);
@@ -9,19 +9,19 @@ fn read_map(location: &str) -> Map {
 }
 
 fn part_one() {
-  println!("#### TEST ####");
+  print_test();
   let input_map = read_map("day_03/test");
   let valid_nums = input_map.valid_numbers();
-  println!("the sum is: {}\n", valid_nums.iter().sum::<u64>());
+  println!("the sum is: {}\n", Color::Red(valid_nums.iter().sum::<u64>()));
   
-  println!("#### SOLUTION ####");
+  print_solution();
   let input_map = read_map("day_03/input");
   let valid_nums = input_map.valid_numbers();
-  println!("the sum is: {}\n", valid_nums.iter().sum::<u64>());
+  println!("the sum is: {}\n", Color::Red(valid_nums.iter().sum::<u64>()));
 }
 
 fn part_two() {
-  println!("#### TEST ####");
+  print_test();
   let input_map = read_map("day_03/test");
   let gears = input_map.gears();
   let sum = gears.values().map(|nums| {
@@ -31,9 +31,9 @@ fn part_two() {
 
       return 0;
     }).sum::<u64>();
-  println!("{:#?}", sum);
+  println!("{}", Color::Red(sum));
   
-  println!("#### SOLUTION ####");
+  print_solution();
   let input_map = read_map("day_03/input");
   let gears = input_map.gears();
   let sum = gears.values().map(|nums| {
@@ -43,7 +43,7 @@ fn part_two() {
 
       return 0;
     }).sum::<u64>();
-  println!("{:#?}", sum);
+  println!("{}", Color::Red(sum));
 }
 
 pub fn run() {
