@@ -1,11 +1,16 @@
-use std::{io::{self, Write},process};
+use std::{io::{self, Write},process, env};
 
 mod advent;
 mod shared;
 
 fn main() {   
     let mut day_input = String::new();
-    println!("\n\nWrite 'exit' to break program");
+    let mut args = env::args();
+
+    if let Some(day_to_run) = args.nth(1) {
+        advent::run_day(day_to_run.as_str());
+        return;
+    }
 
     loop {
         print!("{}", shared::Color::Blue("--> Day to test: "));
