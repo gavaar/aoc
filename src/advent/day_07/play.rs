@@ -1,6 +1,5 @@
 use std::cmp::Ordering;
 
-
 #[derive(Debug, Clone, Copy)]
 enum HandType {
   HighCard,
@@ -13,16 +12,26 @@ enum HandType {
   Error,
 }
 impl HandType {
-  pub fn get(hand: &[char; 5]) -> HandType {
+  pub fn get(hand: &[char; 5], upgrade: bool) -> HandType {
     let mut card_duplicates: Vec<(char, usize)> = Vec::new();
 
     for card in hand {
       let card_search = card_duplicates.iter_mut().find(|c| &c.0 == card);
+
       if let Some(found) = card_search {
         found.1 = found.1 + 1;
       } else {
         card_duplicates.push((*card, 1));
       }
+    }
+
+    if upgrade && card_duplicates.len() > 1 {
+      if let Some(j_index) = card_duplicates.iter().position(|(card, _)| card == &'J') {
+        let j_value = card_duplicates.swap_remove(j_index);
+
+        card_duplicates.sort_by(|a, b| a.1.cmp(&b.1));
+        card_duplicates.iter_mut().last().unwrap().1 += j_value.1;
+      };
     }
 
     match card_duplicates.len() {
@@ -63,23 +72,26 @@ pub struct Play {
   pub hand: [char; 5],
   pub bid: u32,
   hand_type: HandType,
+  joker: bool,
 }
 impl Play {
-  pub fn new(line: &str) -> Play {
+  pub fn new(line: &str, joker: bool) -> Play {
     let (cards, bid_str) = line.split_once(' ').expect("split broke");
     let hand = cards.chars().collect::<Vec<char>>().try_into().expect("cant make a char array from hand");
     let bid = bid_str.parse::<u32>().expect("bid is NaN");
-    let hand_type = HandType::get(&hand);
+    let hand_type = HandType::get(&hand, joker);
 
     Play {
       hand,
       bid,
       hand_type,
+      joker,
     }
   }
 
-  pub fn card_value(card: char) -> usize {
-    let Some(found) = "23456789TJQKA".chars().enumerate()
+  pub fn card_value(card: char, joker: bool) -> usize {
+    let card_value_order = (if joker { "J23456789TQKA" } else { "23456789TJQKA" }).to_string();
+    let Some(found) = card_value_order.chars().enumerate()
       .find(|(_, c)| { card == *c }) else {
         return 0;
       };
@@ -104,7 +116,7 @@ impl Play {
         continue;
       }
 
-      return Play::card_value(self.hand[i]).cmp(&Play::card_value(play.hand[i]));
+      return Play::card_value(self.hand[i], self.joker).cmp(&Play::card_value(play.hand[i], self.joker));
     }
 
     return Ordering::Equal;
