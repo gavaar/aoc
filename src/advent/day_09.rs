@@ -22,8 +22,15 @@ fn sum_of_next_nums(input: &String) -> i32 {
     let numbers: Vec<i32> = line.split(' ').rev().map(|v| v.parse::<i32>().unwrap()).collect();
     let num_pattern = pattern(&numbers);
     let next_num = numbers[0] + num_pattern;
-    println!("numbers 0 is {} and pattern {}", numbers[0], num_pattern);
-    println!("next num is {}", next_num);
+    next_num
+  }).sum::<i32>()
+}
+
+fn sum_of_prev_nums(input: &String) -> i32 {
+  input.lines().map(|line| {
+    let numbers: Vec<i32> = line.split(' ').map(|v| v.parse::<i32>().unwrap()).collect();
+    let num_pattern = pattern(&numbers);
+    let next_num = numbers[0] + num_pattern;
     next_num
   }).sum::<i32>()
 }
@@ -32,12 +39,16 @@ pub fn run() {
   print_test();
   let input = read_input("day_09/test");
   let sum = sum_of_next_nums(&input);
+  let prev_sum = sum_of_prev_nums(&input);
   println!("the sum is {}", sum);
-
+  println!("the prev is {}", prev_sum);
+  
   println!();
-
+  
   print_solution();
   let input = read_input("day_09/input");
   let sum = sum_of_next_nums(&input);
+  let prev_sum = sum_of_prev_nums(&input);
   println!("the sum is {}", sum);
+  println!("the prev is {}", prev_sum);
 }
