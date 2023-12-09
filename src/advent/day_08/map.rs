@@ -2,17 +2,15 @@ use std::collections::HashMap;
 
 #[derive(Debug)]
 struct Node<'a> {
-  id: &'a str,
   left: &'a str,
   right: &'a str,
 }
 impl<'a> Node<'a> {
   pub fn new(line: &'a str) -> Node<'a> {
-    let (id, directions) = line.split_once(" = ").unwrap();
+    let (_, directions) = line.split_once(" = ").unwrap();
     let (left, right) = directions[1..directions.len() - 1].split_once(", ").unwrap();
 
     Node {
-      id,
       left,
       right,
     }
@@ -35,7 +33,7 @@ pub struct Map<'a> {
   pub steps_taken: usize,
 }
 impl<'a> Map<'a> {
-  pub fn new(paper: &String) -> Map {
+  pub fn new(paper: &'a String, starting_node: &'a str) -> Map<'a> {
     let mut lines = paper.lines();
 
     let steps = lines.next().unwrap().chars().collect();
@@ -51,7 +49,7 @@ impl<'a> Map<'a> {
     Map {
       steps,
       nodes,
-      current_node: "AAA",
+      current_node: starting_node,
       steps_taken: 0usize,
     }
   }
