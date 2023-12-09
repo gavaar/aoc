@@ -9,9 +9,9 @@ pub fn read_input(uri: &str) -> String {
 }
 
 pub fn print_test() {
-  println!("{}", Color::Yellow("### TEST ###"));
+  println!("##### {} #####", Color::Yellow("TEST"));
 }
 
 pub fn print_solution() {
-  println!("{}", Color::Green("### SOLUTION ###"));
+  println!("### {} ###", Color::Green("SOLUTION"));
 }
