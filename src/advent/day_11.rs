@@ -9,11 +9,11 @@ impl Coord {
     coord.1.abs_diff(self.1) + coord.0.abs_diff(self.0)
   }
 
-  pub fn move_x(&mut self) {
-    self.1 += 1;
+  pub fn move_x(&mut self, val: usize) {
+    self.1 += val;
   }
-  pub fn move_y(&mut self) {
-    self.0 += 1;
+  pub fn move_y(&mut self, val: usize) {
+    self.0 += val;
   }
 }
 
@@ -52,14 +52,15 @@ impl Universe {
     }
   }
 
-  pub fn expand(&mut self) {
+  pub fn expand(&mut self, vecchio: bool) {
     let empty_rows = self.empty.0.iter().rev().to_owned();
     let empty_cols = self.empty.1.iter().rev().to_owned();
 
     for row in empty_rows {
       self.galaxies.iter_mut().for_each(|g| {
         if &g.0 > row {
-          g.move_y();
+          // add the previous value of 1 plus 999_999 to make the new 1_000_000
+          g.move_y(if vecchio { 999_999 } else { 1 });
         }
       });
     }
@@ -67,31 +68,11 @@ impl Universe {
     for col in empty_cols {
       self.galaxies.iter_mut().for_each(|g| {
         if &g.1 > col {
-          g.move_x();
+          // add the previous value of 1 plus 999_999 to make the new 1_000_000
+          g.move_x(if vecchio { 999_999 } else { 1 });
         }
       });
     }
-
-    let mut new_empty_rows = Vec::new();
-    let mut new_empty_cols = Vec::new();
-
-    self.empty.0.iter().for_each(|v| {
-      new_empty_rows.push(*v);
-      new_empty_rows.push(v + 1);
-    });
-
-    new_empty_cols.sort();
-    new_empty_cols.dedup();
-
-    self.empty.1.iter().for_each(|v| {
-      new_empty_cols.push(*v);
-      new_empty_cols.push(v + 1);
-    });
-
-    new_empty_cols.sort();
-    new_empty_cols.dedup();
-
-    self.empty = (new_empty_rows, new_empty_cols);
   }
 
   pub fn distance_between_galaxies(&self) -> usize {
@@ -109,7 +90,16 @@ impl Universe {
 
 fn part_one(chart: &String) {
   let mut universe = Universe::new(chart);
-  universe.expand();
+  universe.expand(false);
+  println!(
+    "the distance between galaxies is {}",
+    Color::Red(universe.distance_between_galaxies()),
+  );
+}
+
+fn part_two(chart: &String) {
+  let mut universe = Universe::new(chart);
+  universe.expand(true);
   println!(
     "the distance between galaxies is {}",
     Color::Red(universe.distance_between_galaxies()),
@@ -120,10 +110,12 @@ pub fn run() {
   print_test();
   let chart = read_input("day_11/test");
   part_one(&chart);
-  
+  part_two(&chart);
+
   println!();
-  
+
   print_solution();
   let chart = read_input("day_11/input");
   part_one(&chart);
+  part_two(&chart);
 }
