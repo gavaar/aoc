@@ -1,103 +1,143 @@
-use crate::shared::{print_test, print_solution, read_input, Color};
+use std::collections::HashMap;
 
-fn pound_values(line: &str) -> Vec<usize> {
-  let mut values = Vec::new();
-  let mut count = 0;
-  let mut chars = line.chars();
+use crate::shared::{print_test, print_solution, read_input, Color, report_progress};
 
-  let check_for_num = |count: &mut usize, values: &mut Vec<usize>| {
-    if *count > 0 {
-      values.push(*count);
-      *count = 0;
-    }
-  };
+fn matches(expected: &Vec<String>, decoded: &str, leftover: usize, memory: &mut HashMap<String, u128>) -> u128 {
+  let mut original_expected = expected.iter();
+  let original_expected_key = expected.join(",");
+  let expected_value = original_expected.next().unwrap();
+  let (decoded_sub, leftover_sub) = decoded.split_at(expected_value.len());
 
-  loop {
-    let char = chars.next();
+  let memory_key = format!("{}::{}", original_expected_key, decoded);
 
-    match char {
-      Some('.') => {
-        check_for_num(&mut count, &mut values);
+  if let Some(already_parsed) = memory.get(&memory_key) {
+    return *already_parsed;
+  }
+
+  let mut decoded_chars = decoded_sub.chars();
+  let mut expected_chars = expected_value.chars();
+
+  while let Some(next_matching_char) = expected_chars.next() {
+    let decoded_char = decoded_chars.next();
+    
+    if let Some(char_value) = decoded_char {
+      if char_value == '?' {
+        continue;
       }
-      Some('#') => {
-        count += 1;
-      }
-      _ => {
-        check_for_num(&mut count, &mut values);
-        break;
+
+      if char_value != next_matching_char {
+        return 0;
       }
     }
   }
 
-  values
+  let sub_expected: Vec<String> = original_expected.map(|v| v.to_owned()).collect();
+  let sub_decoded = String::from_iter(leftover_sub.chars());
+
+  if sub_expected.len() == 0 {
+    if sub_decoded.contains('#') {
+      return 0;
+    }
+
+    return 1;
+  }
+
+  let mut sum = 0;
+
+  for start_point in 0..leftover + 1 {
+    let (prev, split_decoded) = sub_decoded.split_at(start_point);
+
+    if prev.contains('#') {
+      continue;
+    }
+
+    let matches = matches(&sub_expected, split_decoded, leftover - start_point, memory);
+    sum += matches;
+  }
+
+  memory.insert(memory_key, sum);
+  
+  sum
 }
 
-fn possible_solutions(line: &str) -> Vec<String> {
-  let mut solutions = vec![String::new()];
+fn valid_outputs(expected: Vec<usize>, decoded: &str, memory: &mut HashMap<String, u128>) -> u128 {
+  let min_solution: Vec<String> = expected.iter().map(|exp_len| {
+    "#".repeat(*exp_len) + "."
+  }).collect();
 
-  for char in line.chars() {
-    match char {
-      '.' | '#' => {
-        for solution in solutions.iter_mut() {
-          solution.push(char);
-        }
-      }
-      '?' => {
-        let solutions_len = solutions.len();
-        let mut new_solutions: Vec<String> = Vec::with_capacity(solutions_len);
+  let available_spaces = decoded.len() - (min_solution.iter().map(|v| v.len()).sum::<usize>() - 1);
 
-        for solution in solutions.iter_mut() {
-          let mut new_sol = solution.clone();
-          new_sol.push('.');
-          solution.push('#');
-          new_solutions.push(new_sol);
-        }
+  let mut matching_possibilities = 0;
 
-        solutions = vec![solutions, new_solutions].concat();
-      }
-      _ => unreachable!(),
+  for start_point in 0..available_spaces + 1 {
+    let (prev, split_decoded) = decoded.split_at(start_point);
+
+    if prev.contains('#') {
+      continue; 
     }
+
+    let matches = matches(&min_solution, format!("{}.", split_decoded).as_str(), available_spaces - start_point, memory);
+    matching_possibilities += matches;
   }
 
-  solutions
+  matching_possibilities
 }
 
 fn part_one(input: &String) {
   let lines = input.lines();
+  let mut mem = HashMap::new();
 
-  let mut accepted_solutions: Vec<usize> = Vec::with_capacity(input.lines().count());
-
-  for line in lines {
+  let sum = lines.map(|line| {
     let (decode, expected_str) = line.split_once(' ').expect("broke when splittin");
     let expected = expected_str.split(',').map(|v| v.parse::<usize>().expect("expected value broke when usize")).collect::<Vec<usize>>();
 
-    let possible: Vec<String> = possible_solutions(decode).into_iter().filter_map(|s| {
-      let values = pound_values(s.as_str());
+    valid_outputs(expected, decode, &mut mem)
+  }).sum::<u128>();
 
-      if values == expected {
-        return Some(s);
-      }
+  println!("sum: {}", Color::Red(sum));
+}
 
-      None
-    }).collect();
+fn part_two(input: &String) {
+  let lines = input.lines();
+  let mut memory = HashMap::new();
 
-    accepted_solutions.push(possible.len());
-  }
+  let sum = lines.enumerate().map(|(current, line)| {
+    print!(" @ {current}");
+    report_progress(current, input.lines().count());
 
-  println!("the possible solution sum is {}", Color::Red(accepted_solutions.iter().sum::<usize>()));
+    let (decode, expected_str) = line.split_once(' ').expect("broke when splittin");
+    let expected = expected_str.split(',').map(|v| v.parse::<usize>().expect("expected value broke when usize")).collect::<Vec<usize>>();
+
+    let mut result = 0;
+
+    for repeat in 1..6 {
+      let mut extended_decode = format!("{}?", decode).repeat(repeat);
+      let extended_expected = expected.repeat(repeat);
+      extended_decode.pop();
+
+      result = valid_outputs(extended_expected, extended_decode.as_str(), &mut memory);
+    }
+
+    result
+  }).sum::<u128>();
+
+  println!("\nsum: {}", Color::Red(sum));
 }
 
 pub fn run() {
   print_test();
-  let input = read_input("day_12/test");
+  let test = read_input("day_12/test");
   println!("-- p1");
-  part_one(&input);
-  
+  part_one(&test);
+  println!("-- p2");
+  part_two(&test);
+
   println!();
   
   print_solution();
-  println!("-- p1");
   let input = read_input("day_12/input");
+  println!("-- p1");
   part_one(&input);
-
+  println!("-- p2");
+  part_two(&input);
 }
