@@ -1,7 +1,9 @@
-use std::{fs, io::{stdout, Write}};
+use std::fs;
 
 mod color;
+mod report_progress;
 pub use color::Color;
+pub use report_progress::report_progress;
 
 pub fn read_input(uri: &str) -> String {
   let url = String::from("src/advent/") + uri;
@@ -14,18 +16,4 @@ pub fn print_test() {
 
 pub fn print_solution() {
   println!("### {} ###", Color::Green("SOLUTION"));
-}
-
-pub fn report_progress(current: usize, total: usize) {
-  let one_percent: f32 = (total as f32 - 1f32) / 100f32;
-  let current_percent = (current as f32 / one_percent).ceil() as usize;
-  let left = 100 - current_percent;
-  let progress = format!("[{}{}{}]", Color::Green("=".repeat(current_percent)), Color::Green(">"), " ".repeat(left));
-
-  print!("\r{progress} @ {current}");
-  stdout().flush().unwrap();
-
-  if left == 0 {
-    println!();
-  }
 }
