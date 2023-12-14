@@ -4,7 +4,7 @@ pub struct Dish {
 impl Dish {
   fn swap_pos(&mut self, from: (usize, usize), to: (usize, usize)) {
     let new_from_value = self.dish_map[to.0][to.1];
-    let new_to_value = self.dish_map[from.0][to.1];
+    let new_to_value = self.dish_map[from.0][from.1];
 
     self.dish_map[to.0][to.1] = new_to_value;
     self.dish_map[from.0][from.1] = new_from_value;
@@ -26,6 +26,13 @@ impl Dish {
     Dish {
       dish_map
     }
+  }
+
+  pub fn cycle(&mut self) {
+    self.tilt_north();
+    self.tilt_west();
+    self.tilt_south();
+    self.tilt_east();
   }
 
   pub fn tilt_north(&mut self) {
@@ -53,6 +60,49 @@ impl Dish {
     }
   }
 
+  fn tilt_south(&mut self) {
+    self.dish_map.reverse();
+    self.tilt_north();
+    self.dish_map.reverse();
+  }
+
+  fn tilt_west(&mut self) {
+    let mut westmost_empty_col = vec![0; self.dish_map.len()];
+    let iterable_rows = &self.dish_map.to_vec();
+
+    for col in 0..iterable_rows[0].len() {
+      for (row, line) in iterable_rows.iter().enumerate() {
+        let character = line[col];
+
+        match character {
+          'O' => {
+            let westmost_empty = westmost_empty_col[row];
+            if westmost_empty < col {
+              self.swap_pos((row, col), (row, westmost_empty));
+            }
+
+            westmost_empty_col[row] = westmost_empty + 1;
+          }
+          '.' => {}
+          '#' => {
+            westmost_empty_col[row] = col + 1;
+          },
+          _wat => unreachable!(),
+        }
+      }
+    }
+  }
+
+  fn tilt_east(&mut self) {
+    for row in self.dish_map.iter_mut() {
+      row.reverse();
+    }
+    self.tilt_west();
+    for row in self.dish_map.iter_mut() {
+      row.reverse();
+    }
+  }
+
   pub fn value(&self) -> u64 {
     let base_val = self.dish_map.len();
     let mut values = Vec::new();
@@ -69,12 +119,16 @@ impl Dish {
     values.into_iter().sum::<u64>()
   }
 
-  pub fn print(&self) {
+  pub fn get_print(&self) -> String {
+    let mut print = String::with_capacity(self.dish_map.len() * self.dish_map[0].len());
+
     for row in &self.dish_map {
       for col in row {
-        print!("{col}");
+        print.push(*col);
       }
-      print!("\n");
+      print.push('\n');
     }
+
+    print
   }
 }
