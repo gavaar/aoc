@@ -9,9 +9,9 @@ fn parse_input<'a>(input: &'a String) -> Vec<&'a str> {
 
 fn part_one(input: &String) {
   let sum: u32 = parse_input(input)
-  .iter()
-  .map(|seq| Boxes::hash_algorithm(seq))
-  .sum();
+    .iter()
+    .map(|seq| Boxes::hash_algorithm(seq))
+    .sum();
 
   println!("the crazy ascii sum is {}", Color::Red(sum));
 }

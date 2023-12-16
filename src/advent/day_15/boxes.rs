@@ -35,11 +35,6 @@ impl<'a> Boxes<'a> {
 
   pub fn focusing_power(&self) -> u32 {
     self.0.iter().enumerate().map(|(box_number, single_box)| {
-      /*
-      - One plus the box number of the lens in question.
-      - The slot number of the lens within the box: 1 for the first lens, 2 for the second lens, and so on.
-      - The focal length of the lens.
-       */
       single_box.iter().enumerate().map(|(slot, box_value)| {
         (1u32 + box_number as u32) * (1u32 + slot as u32) * box_value.1 as u32
       }).sum::<u32>()
@@ -61,7 +56,7 @@ impl<'a> Boxes<'a> {
     if let Some(found_lens_index) = lens_index {
       self.0[box_id][found_lens_index].1 = focal_len_value;
     } else {
-      self.0[box_id].push((label, focal_len_value))
+      self.0[box_id].push((label, focal_len_value));
     }
   }
 
