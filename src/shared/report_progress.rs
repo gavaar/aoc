@@ -8,7 +8,7 @@ pub fn report_progress(current: usize, total: usize) {
   let left = 100 - current_percent;
   let progress = format!("[{}{}{}]", Color::Green("=".repeat(current_percent)), Color::Green(">"), " ".repeat(left));
 
-  print!("\r{progress} @ {current}");
+  print!("\r{progress} @ {current} / {total}");
   stdout().flush().unwrap();
 
   if current == total - 1 {

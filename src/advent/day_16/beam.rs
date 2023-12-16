@@ -4,7 +4,7 @@ use super::{pos::Pos, contraption::Contraption};
 pub struct Beam {
   pub position: Pos,
   // only goes from +1 to -1. Vertical
-  velocity: Pos,
+  pub velocity: Pos,
   pub finished: bool,
 }
 impl Beam {

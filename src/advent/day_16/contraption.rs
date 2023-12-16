@@ -19,23 +19,18 @@ impl Contraption {
     self.contraption_map.get(pos.0 as usize).and_then(|row| row.get(pos.1 as usize))
   }
 
-  pub fn paint(&self, positions: &Vec<Pos>) -> String {
-    let mut paint: Vec<Vec<char>> = Vec::new();
+  pub fn size(&self) -> (usize, usize) {
+    (self.contraption_map.len(), self.contraption_map[0].len())
+  }
 
-    for row in 0..self.contraption_map.len() {
-      paint.push(Vec::new());
-
-      for _col in 0..self.contraption_map[0].len() {
-        paint[row].push('.');
+  pub fn energized(&self) -> usize {
+    let mut painted_points: Vec<Pos> = Vec::new();
+    self.history.iter().for_each(|point| {
+      if !painted_points.contains(&point.1) {
+        painted_points.push(point.1);
       }
-
-      paint[row].push('\n');
-    }
-
-    positions.iter().for_each(|pos| {
-      paint[pos.0 as usize][pos.1 as usize] = '#';
     });
 
-    paint.iter().map(|lines| lines.iter().collect::<String>()).collect()
+    painted_points.iter().count()
   }
 }
