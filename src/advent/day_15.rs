@@ -1,32 +1,47 @@
-use crate::shared::{print_test, print_solution, read_input, Color};
+use crate::shared::{print_test, print_solution, read_input, Color, report_progress};
+
+mod boxes;
+use boxes::Boxes;
 
 fn parse_input<'a>(input: &'a String) -> Vec<&'a str> {
-  input.split(',')
-    .collect()
+  input.split(',').collect()
 }
 
-fn init_sequence(seq: &str) -> u32 {
-  seq.chars().fold(0u32, |acc, curr_char| {
-    let ascii =  curr_char as u8 as u32;
-    ((acc + ascii) * 17) % 256u32
-  })
+fn part_one(input: &String) {
+  let sum: u32 = parse_input(input)
+  .iter()
+  .map(|seq| Boxes::hash_algorithm(seq))
+  .sum();
+
+  println!("the crazy ascii sum is {}", Color::Red(sum));
+}
+
+fn part_two(input: &String) {
+  let sequences = parse_input(input);
+  let mut boxes: Boxes = Boxes::default();
+
+  let total = sequences.len();
+
+  sequences.iter().enumerate().for_each(|(curr, seq)| {
+    boxes.operate(seq);
+    report_progress(curr, total);
+  });
+
+  let focusing_power = boxes.focusing_power();
+
+  println!("focusing power: {}", Color::Red(focusing_power));
 }
 
 pub fn run() {
   print_test();
   let test_str = read_input("day_15/test");
-  let sum: u32 = parse_input(&test_str)
-    .iter()
-    .map(|seq| init_sequence(seq))
-    .sum();
+  part_one(&test_str);
+  part_two(&test_str);
 
-  println!("the crazy ascii sum is {}", Color::Red(sum));
-  
+  println!();
+
   print_solution();
   let input = read_input("day_15/input");
-  let sum: u32 = parse_input(&input)
-    .iter()
-    .map(|seq| init_sequence(seq))
-    .sum();
-  println!("the crazy ascii sum is {}", Color::Red(sum));
+  part_one(&input);
+  part_two(&input);
 }

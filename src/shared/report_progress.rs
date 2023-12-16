@@ -11,7 +11,7 @@ pub fn report_progress(current: usize, total: usize) {
   print!("\r{progress} @ {current}");
   stdout().flush().unwrap();
 
-  if left == 0 {
+  if current == total - 1 {
     println!();
   }
 }
