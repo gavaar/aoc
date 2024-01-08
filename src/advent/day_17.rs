@@ -1,4 +1,4 @@
-use std::{collections::{HashSet, HashMap}, vec};
+use std::{collections::{HashSet, VecDeque, HashMap}, vec};
 
 use crate::shared::{print_test, read_input, Color, print_solution, ToU8Map, report_progress};
 
@@ -6,30 +6,9 @@ mod direction;
 use direction::Direction;
 mod pos;
 use pos::Pos;
+mod helpers;
+use helpers::draw;
 
-fn draw(heat_map: &Vec<Vec<u8>>, path: &Vec<Pos>) {
-  let mut str_vec: Vec<Vec<String>> = heat_map.iter().map(|row| row.iter().map(|heat_loss| heat_loss.to_string()).collect()).collect();
-
-  for pos in path {
-    let original_value = str_vec[pos.0][pos.1].to_owned();
-    str_vec[pos.0][pos.1] = Color::Green(original_value).to_string();
-  }
-
-  let mut drawing = String::new();
-  for row in str_vec {
-    let mut line = String::new();
-    for col in row {
-      line.push_str(col.as_str());
-    }
-    line.push('\n');
-    drawing.push_str(line.as_str());
-  }
-
-  println!();
-  println!("{drawing}");
-}
-
-#[derive(Debug)]
 struct Node {
   pos: Pos,
   direction: Direction,
@@ -49,118 +28,186 @@ impl Default for Node {
   }
 }
 
-struct Queue {
-  priority_queue: HashMap<u32, Vec<(Pos, usize, Direction)>>,
-  priority_queue_idx: u32,
-  // (pos + overheat)
-  hash: HashMap<(Pos, usize, Direction), Node>,
+// we won't add nodes with limitations
+struct BetterQueue {
+  min_overheat: usize,
+  max_overheat: usize,
+  heat_map: Vec<Vec<u8>>,
+  seen_nodes: SeenNodes,
+  priority_queue: VecDeque<Node>,
+  node_in_queue_index_map: HashMap<(Pos, Direction, usize), usize>, // index where node is in queue
 }
-impl Default for Queue {
-  fn default() -> Self {
-    Queue {
-      priority_queue: HashMap::new(),
-      priority_queue_idx: 0,
-      hash: HashMap::new(),
+impl BetterQueue {
+  fn heat_value(&self, pos: &Pos) -> Option<u32> {
+    self.heat_map.get(pos.0).and_then(|r| r.get(pos.1)).and_then(|v| Some(*v as u32))
+  }
+
+  pub fn build_new_enqueue(&mut self, node: &Node, direction: &str) {
+    let next_dir = node.direction.next(direction);
+    let Some(new_pos) = node.pos.next(&next_dir) else { return; };
+    let Some(next_heat) = self.heat_value(&new_pos) else { return; };
+    let new_overheat = if direction == "forward" { node.overheat + 1 } else { 1 };
+    let new_heat = node.heat_loss + next_heat;
+    let mut new_path = node.path.clone();
+    new_path.push(new_pos.clone());
+
+    self.enqueue(Node {
+      direction: next_dir,
+      heat_loss: new_heat,
+      pos: new_pos,
+      overheat: new_overheat,
+      path: new_path,
+    });
+  }
+
+  // fn queue_move_up(&mut self, idx: usize) -> usize /* new pos */ {
+  //   let mut curr_node_pos = idx;
+  //   loop {
+  //     let Some(curr_node) = self.priority_queue.get(curr_node_pos) else { return curr_node_pos; };
+  //     let Some(next_node) = self.priority_queue.get(curr_node_pos + 1) else { return curr_node_pos; };
+
+  //     if curr_node.heat_loss > next_node.heat_loss {
+  //       self.priority_queue.swap(curr_node_pos, curr_node_pos + 1);
+  //       curr_node_pos += 1;
+  //     } else {
+  //       return curr_node_pos;
+  //     }
+  //   }
+  // }
+
+  fn queue_move_down(&mut self, idx: usize) {
+    let mut curr_node_idx = idx;
+    loop {
+      if curr_node_idx == 0 { return; };
+      let Some(curr_node) = self.priority_queue.get(curr_node_idx) else { return; };
+      let Some(next_node) = self.priority_queue.get(curr_node_idx - 1) else { return; };
+
+      if curr_node.heat_loss < next_node.heat_loss {
+        *self.node_in_queue_index_map.get_mut(&(curr_node.pos.clone(), curr_node.direction, curr_node.overheat)).unwrap() -= 1;
+        *self.node_in_queue_index_map.get_mut(&(next_node.pos.clone(), next_node.direction, next_node.overheat)).unwrap() += 1;
+
+        self.priority_queue.swap(curr_node_idx, curr_node_idx - 1);
+        curr_node_idx -= 1;
+      } else {
+        return;
+      }
     }
   }
-}
-impl Queue {
-  pub fn enqueue(&mut self, pos: Pos, node: Node) {
-    let current_node_in_pos = self.hash.get(&(pos.clone(), node.overheat, node.direction));
 
-    // if node is not in the list, or is but with more heat_loss or more overheat
-    if current_node_in_pos.is_none() ||
-      node.heat_loss < current_node_in_pos.unwrap().heat_loss {
-      if !self.priority_queue.contains_key(&node.heat_loss) {
-        self.priority_queue.insert(node.heat_loss, Vec::new());
-      }
-
-      self.priority_queue.get_mut(&node.heat_loss).unwrap().push((pos.clone(), node.overheat, node.direction));
-      let res = self.hash.insert((pos, node.overheat, node.direction), node);
-      if res.is_some() {
-        println!("REMOVED {:?} from", res.unwrap());
-      }
+  pub fn new(heat_map: Vec<Vec<u8>>, min_overheat: usize, max_overheat: usize) -> Self {
+    BetterQueue {
+      min_overheat,
+      max_overheat,
+      heat_map,
+      seen_nodes: SeenNodes::default(),
+      priority_queue: VecDeque::from([Node::default()]),
+      node_in_queue_index_map: HashMap::new(),
     }
   }
 
   pub fn next(&mut self) -> Option<Node> {
-    loop {
-      if self.priority_queue.len() == 0 {
-        return None;
+    let Some(next) = self.priority_queue.pop_front() else {
+      return None;
+    };
+    
+    self.node_in_queue_index_map.remove(&(next.pos.clone(), next.direction, next.overheat));
+
+    self.node_in_queue_index_map.values_mut().for_each(|v| {
+      *v -= 1;
+    });
+
+    self.seen_nodes.see(&next);
+    Some(next)
+  }
+
+  pub fn enqueue(&mut self, node: Node) {
+    if self.seen_nodes.check(&node) {
+      return; // we already walked it, we don't want to do nothing with it.
+    }
+
+    // find first free node
+    if node.overheat < self.min_overheat {
+      self.build_new_enqueue(&node, "forward");
+      return;
+    }
+
+    if node.overheat >= self.max_overheat {
+      for dir in ["left", "right"] {
+        self.build_new_enqueue(&node, dir);
       }
+      return;
+    }
 
-      let next_priority_queue = self.priority_queue.get_mut(&self.priority_queue_idx);
+    let node_pos = node.pos.clone();
+    let node_direction = node.direction;
+    let node_overheat = node.overheat;
+    match self.node_in_queue_index_map.get(&(node_pos.clone(), node_direction, node_overheat)) {
+      Some(exists_in_idx) => {
+        let existing_node = &mut self.priority_queue[*exists_in_idx];
+        // node is smaller or equal with less overheat => we update it in the queue
+        if node.heat_loss < existing_node.heat_loss {
+            existing_node.direction = node.direction;
+            existing_node.heat_loss = node.heat_loss;
+            existing_node.path = node.path;
+            existing_node.overheat = node.overheat;
 
-      if let Some(pos_queue) = next_priority_queue {
-        let next_pos = pos_queue.pop().expect("this should not fail");
-
-        if pos_queue.len() == 0 {
-          self.priority_queue.remove(&self.priority_queue_idx);
+            // move up the queue after updating
+            self.queue_move_down(*exists_in_idx);
         }
-
-        return self.hash.remove(&next_pos);
+        // else do nothing
       }
-
-      self.priority_queue_idx += 1;
+      None => {
+        self.priority_queue.push_back(node);
+        self.node_in_queue_index_map.insert((node_pos, node_direction, node_overheat), self.priority_queue.len() - 1);
+        self.queue_move_down(self.priority_queue.len() - 1);
+      }
     }
   }
 }
 
-fn part_one(map: &String) {
-  let heat_loss_map = map.to_u8_map();
-  let mut queue = Queue::default();
-  queue.enqueue(Pos(0, 0), Node::default());
+struct SeenNodes(HashSet<(Pos, Direction, usize)>);
+impl Default for SeenNodes {
+  fn default() -> Self {
+    SeenNodes(HashSet::new())
+  }
+}
+impl SeenNodes {
+  fn see(&mut self, node: &Node) {
+    self.0.insert((node.pos.clone(), node.direction, node.overheat));
+  }
 
-  let mut seen_nodes: HashSet<Pos> = HashSet::new();
+  fn check(&self, node: &Node) -> bool {
+    self.0.get(&(node.pos.clone(), node.direction, node.overheat)).is_some()
+  }
+
+  fn len(&self) -> usize {
+    self.0.len()
+  }
+}
+
+fn find_path(map: &String, min_overheat: usize, max_overheat: usize) {
+  let heat_loss_map = map.to_u8_map();
+  let heat_loss_last_row_idx = heat_loss_map.len() - 1;
+  let heat_loss_last_col_idx = heat_loss_map[0].len() - 1;
+  let total = heat_loss_map.iter().flatten().count() * 24;
+
+  let mut queue = BetterQueue::new(heat_loss_map, min_overheat, max_overheat);
   let mut last_node = Node::default();
 
-  let total = heat_loss_map.iter().flatten().count();
-
-  loop {
-    let Some(current_node) = queue.next() else {
-      println!("THIS BROKE");
-      unreachable!();
-    };
-    report_progress(seen_nodes.len(), total);
-    // update node as seen
-    seen_nodes.insert(current_node.pos.clone());
-
-    if current_node.pos == Pos(heat_loss_map.len() - 1, heat_loss_map[0].len() - 1) {
-      last_node = current_node;
+  while let Some(next_node) = queue.next() {
+    if next_node.pos == Pos(heat_loss_last_row_idx, heat_loss_last_col_idx) {
+      last_node = next_node;
       break;
-    };
-
-    // check three directions
-    for direction in ["right", "forward", "left"] {
-      let next_direction = current_node.direction.next(direction);
-
-      // if there's a next pos, and is not already seen
-      if let Some(next_pos) = current_node.pos.next(&next_direction) {
-        // if seen_nodes.contains(&next_pos) { continue; };
-        
-        // and we also have a value in this new pos
-        if let Some(next_heat_loss) = heat_loss_map.get(next_pos.0).and_then(|r| r.get(next_pos.1)) {
-          let overheat = if direction == "forward" { current_node.overheat + 1 } else { 1 };
-
-          if overheat <= 3 {
-            let new_heat_loss =  current_node.heat_loss + *next_heat_loss as u32;
-            let mut path = current_node.path.clone();
-            path.push(next_pos.clone());
-
-            queue.enqueue(next_pos.clone(), Node {
-              path,
-              overheat,
-              heat_loss: new_heat_loss,
-              direction: next_direction,
-              pos: next_pos,
-            });
-          }
-        }
-      };
     }
-  };
 
-  draw(&heat_loss_map, &last_node.path);
+    report_progress(queue.seen_nodes.len(), total);
+
+    for dir in ["forward", "left", "right"] {
+      queue.build_new_enqueue(&next_node, dir);
+    }
+  }
+
+  draw(&map.to_u8_map(), &last_node.path);
 
   println!("The shortest path sums: {}", Color::Red(last_node.heat_loss));
 }
@@ -168,11 +215,19 @@ fn part_one(map: &String) {
 pub fn run() {
   print_test();
   let map = read_input("day_17/test");
-  part_one(&map);
-
+  println!("--> {}", Color::Blue("part one"));
+  find_path(&map, 1, 3);
+  println!("--> {}", Color::Blue("part two"));
+  let map_2 = read_input("day_17/test_2");
+  find_path(&map, 4, 10);
+  find_path(&map_2, 4, 10);
+  
   println!();
-
+  
   print_solution();
   let map = read_input("day_17/input");
-  part_one(&map);
+  println!("--> {}", Color::Blue("part one"));
+  find_path(&map, 1, 3);
+  println!("--> {}", Color::Blue("part two"));
+  find_path(&map, 4, 10);
 }
