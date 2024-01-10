@@ -10,13 +10,14 @@ pub fn report_progress(current: usize, total: usize) {
   let current_percent = (current as f32 / one_percent).ceil() as usize;
   let left = 100 - current_percent;
   let progress = format!("{}% [{}{}{}]", current_percent, Color::Green("=".repeat(current_percent)), Color::Green(">"), " ".repeat(left));
+  let current_plus_one = current + 1;
 
-  print!("\r{progress} @ {current} / {total}");
+  print!("\r{progress} @ {current_plus_one} / {total}");
 
   if current_percent > 5 {
     let total_time = (total as f64 / current as f64) * start_time.elapsed().as_secs() as f64;
     let time_left = (100.0 * (total_time - start_time.elapsed().as_secs() as f64) / 60.0).trunc() / 100.0;
-    print!(" (ETA: ~{}m remaining)", Color::Blue(time_left));
+    print!(" (ETA: ~{}m left)", Color::Blue(time_left));
   }
   stdout().flush().unwrap();
 

@@ -15,6 +15,8 @@ fn count_gaps(row_map: &mut HashMap<usize, Vec<usize>>) -> u128 {
   let mut sum = 0u128;
   let init_len = row_map.len();
 
+  println!("--> {}", Color::Blue("filling gaps"));
+
   while idx < init_len {
     report_progress(idx, init_len);
     let mut cols = row_map.get(&idx).expect("extract from map should not fail").clone();

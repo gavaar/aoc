@@ -1,12 +1,21 @@
 use std::collections::HashMap;
 
+use crate::shared::{report_progress, Color};
+
 use super::{instr::Instr, pos::Pos, dir::Dir};
 
 pub fn build_perimeter(instr: Vec<Instr>, starting_pos: Pos) -> HashMap<usize, Vec<usize>>{
   let mut map = HashMap::new();
   let mut needle = starting_pos;
 
+  println!("--> {}", Color::Blue("building perimeter"));
+  let total = instr.len();
+  let mut current = 0;
+
   for instruct in instr.iter() {    
+    report_progress(current, total);
+    current += 1;
+
     for _idx in 0..instruct.steps {
       needle = needle.next(&instruct.dir).expect("should not break");
       if map.get(&needle.0).is_none() {
@@ -29,7 +38,14 @@ pub fn instructions_and_starting_pos(input: &String, use_hex: bool) -> (Vec<Inst
   let mut vertical = 0i128;
   let mut horizontal = 0i128;
 
+  println!("--> {}", Color::Blue("building instructions"));
+  let total = input.lines().count();
+  let mut current = 0;
+
   let instructions = input.lines().map(|l| {
+    report_progress(current, total);
+    current += 1;
+
     let mut instr = Instr::new(l);
     if use_hex {
       instr.apply_hex();
