@@ -21,7 +21,7 @@ pub fn build_perimeter(instr: Vec<Instr>, starting_pos: Pos) -> HashMap<usize, V
 }
 
 // instructions / starting_pos
-pub fn instructions_and_starting_pos(input: &String) -> (Vec<Instr>, Pos) {
+pub fn instructions_and_starting_pos(input: &String, use_hex: bool) -> (Vec<Instr>, Pos) {
   let mut up = 0i128;
   let mut down = 0i128;
   let mut left = 0i128;
@@ -30,7 +30,11 @@ pub fn instructions_and_starting_pos(input: &String) -> (Vec<Instr>, Pos) {
   let mut horizontal = 0i128;
 
   let instructions = input.lines().map(|l| {
-    let instr = Instr::new(l);
+    let mut instr = Instr::new(l);
+    if use_hex {
+      instr.apply_hex();
+    }
+
     match instr.dir {
       Dir::Up => {
         vertical -= instr.steps as i128;

@@ -1,5 +1,6 @@
 use super::dir::Dir;
 
+#[derive(Debug)]
 pub struct Instr<'a> {
   pub dir: Dir,
   pub steps: u32,
@@ -25,5 +26,18 @@ impl<'a> Instr<'a> {
       steps,
       hex_color,
     }
+  }
+
+  pub fn apply_hex(&mut self) {
+    let letter = self.hex_color.chars().last().unwrap();
+    self.dir = match letter {
+      '0' => Dir::Right,
+      '1' => Dir::Down,
+      '2' => Dir::Left,
+      '3' => Dir::Up,
+      _ => unreachable!(), //shold be
+    };
+    let hex_code = &self.hex_color[1..self.hex_color.len() - 1];
+    self.steps = u32::from_str_radix(hex_code, 16).expect("should not fail");
   }
 }
