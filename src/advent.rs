@@ -1,7 +1,7 @@
+use crate::shared::YEAR;
+
 mod y2023;
 mod y2024;
-
-const YEAR: u16 = 2024;
 
 pub fn run_day(buffer: &str) {
   match YEAR {

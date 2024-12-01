@@ -4,9 +4,10 @@ mod color;
 mod report_progress;
 pub use color::Color;
 pub use report_progress::report_progress;
+pub const YEAR: u16 = 2024;
 
 pub fn read_input(uri: &str) -> String {
-  let url = format!("src/advent/y2023/{}", uri);
+  let url = format!("src/advent/y{YEAR}/{}", uri);
   fs::read_to_string(url).expect("error reading file")
 }
 
