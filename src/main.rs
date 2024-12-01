@@ -23,7 +23,7 @@ fn main() {
             process::exit(1);
         }
 
-        advent::run_day(day_input.trim());
+        advent::run_day(trimmed_day);
         println!("----------------\n");
         day_input = "".to_string();
     }

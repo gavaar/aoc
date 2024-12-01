@@ -1,6 +1,6 @@
 use crate::{
   shared::{read_input, print_test, print_solution, Color},
-  advent::day_04::{stack::Stack, card::Card}
+  advent::y2023::day_04::{stack::Stack, card::Card}
 };
 
 mod card;

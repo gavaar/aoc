@@ -6,7 +6,7 @@ pub use color::Color;
 pub use report_progress::report_progress;
 
 pub fn read_input(uri: &str) -> String {
-  let url = format!("src/advent/{}", uri);
+  let url = format!("src/advent/y2023/{}", uri);
   fs::read_to_string(url).expect("error reading file")
 }
 

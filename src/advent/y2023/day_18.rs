@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{shared::{print_test, read_input, Color, print_solution, report_progress}, advent::day_18::helpers::draw};
+use crate::{shared::{print_test, read_input, Color, print_solution, report_progress}, advent::y2023::day_18::helpers::draw};
 
 mod pos;
 mod dir;

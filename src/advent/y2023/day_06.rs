@@ -1,4 +1,4 @@
-use crate::{shared::{read_input, print_test, print_solution, Color}, advent::day_06::helpers::number_of_ways_to_break_record};
+use crate::{shared::{read_input, print_test, print_solution, Color}, advent::y2023::day_06::helpers::number_of_ways_to_break_record};
 
 mod helpers;
 mod race;

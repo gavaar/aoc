@@ -6,7 +6,6 @@ pub struct Round {
 
 pub struct Game {
   pub id: usize,
-  pub rounds: Vec<Round>,
   pub is_possible: bool,
   pub power: usize,
 }
@@ -70,7 +69,6 @@ impl Game {
 
     Game {
       id,
-      rounds,
       is_possible,
       power,
     }

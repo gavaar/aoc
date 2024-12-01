@@ -1,4 +1,4 @@
-use crate::{shared::{read_input, print_test, print_solution, Color, report_progress}, advent::day_16::pos::Pos};
+use crate::{shared::{read_input, print_test, print_solution, Color, report_progress}, advent::y2023::day_16::pos::Pos};
 
 mod pos;
 mod beam;
