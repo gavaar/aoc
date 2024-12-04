@@ -1,13 +1,13 @@
 use std::collections::HashMap;
 
-const TOP_LEFT: &str = "top-left";
-const TOP: &str = "top";
-const TOP_RIGHT: &str = "top-right";
-const LEFT: &str = "left";
-const RIGHT: &str = "right";
-const BOT_LEFT: &str = "bot-left";
-const BOT: &str = "bot";
-const BOT_RIGHT: &str = "bot-right";
+pub const TOP_LEFT: &str = "top-left";
+pub const TOP: &str = "top";
+pub const TOP_RIGHT: &str = "top-right";
+pub const LEFT: &str = "left";
+pub const RIGHT: &str = "right";
+pub const BOT_LEFT: &str = "bot-left";
+pub const BOT: &str = "bot";
+pub const BOT_RIGHT: &str = "bot-right";
 
 pub struct Grid {
   pub positions: HashMap<(usize, usize), char>,
