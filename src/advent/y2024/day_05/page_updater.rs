@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{cmp::Ordering, collections::HashMap};
 
 pub struct PageUpdater {
   rules: HashMap<(u32, u32), bool>,
@@ -33,8 +33,24 @@ impl PageUpdater {
     vec[idx / 2]
   }
 
-  pub fn correct_middle_pages(&self) -> Vec<u32> {
+  pub fn sort_vec(&self, vec: &Vec<u32>) -> Vec<u32> {
+    let mut ordered = vec.clone();
+    ordered.sort_by(|a, b| {
+      let is_valid = self.rules.get(&(*a, *b)).expect("rule should exist");
+
+      if *is_valid {
+        return Ordering::Less;
+      }
+
+      Ordering::Greater
+    });
+    ordered
+  }
+
+  pub fn correct_middle_pages(&self) -> (/* Correct middle ones */ Vec<u32>, /* Incorrect middles ones, ordered, and corrected */ Vec<u32>) {
     let mut correct_middle_pages = Vec::new();
+    let mut incorrect_corrected_middle_pages = Vec::new();
+
     self.updates.iter().for_each(|update_vec| {
       let mut no_errors = true;
 
@@ -54,9 +70,13 @@ impl PageUpdater {
       if no_errors {
         let middle_page = PageUpdater::mid_page(&update_vec);
         correct_middle_pages.push(middle_page);
+      } else {
+        let corrected_vec = self.sort_vec(&update_vec);
+        let middle_page = PageUpdater::mid_page(&corrected_vec);
+        incorrect_corrected_middle_pages.push(middle_page);
       }
     });
 
-    correct_middle_pages
+    (correct_middle_pages, incorrect_corrected_middle_pages)
   }
 }

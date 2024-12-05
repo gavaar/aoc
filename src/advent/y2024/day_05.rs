@@ -9,19 +9,22 @@ fn parse_input(uri: &str) -> PageUpdater {
   PageUpdater::new(&input)
 }
 
-fn part_one(updater: &PageUpdater) {
-  let correct_mid_pages = updater.correct_middle_pages();
-  println!("correct mid pages are {:?}", correct_mid_pages);
+fn both_parts(updater: &PageUpdater) {
+  let (correct_mid_pages, corrected_mid_pages) = updater.correct_middle_pages();
+
+  println!("{}", Color::Green("Part One"));
   println!("Sum of mid pages is {}", Color::Blue(correct_mid_pages.iter().sum::<u32>()));
+  println!("{}", Color::Green("Part Two"));
+  println!("Sum of mid pages is {}", Color::Blue(corrected_mid_pages.iter().sum::<u32>()));
 }
 
 pub fn run() {
   print_test();
   let test_updater = parse_input("day_05/test");
-  part_one(&test_updater);
+  both_parts(&test_updater);
   println!();
 
   print_solution();
   let updater = parse_input("day_05/input");
-  part_one(&updater);
+  both_parts(&updater);
 }
