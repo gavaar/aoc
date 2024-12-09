@@ -1,7 +1,9 @@
 use std::collections::{HashMap, HashSet};
 
-#[derive(PartialEq)]
-enum Direction {
+use crate::shared::report_progress;
+
+#[derive(PartialEq, Eq, Hash, Clone, Debug)]
+pub enum Direction {
   North,
   East,
   South,
@@ -32,28 +34,111 @@ impl Direction {
   }
 }
 
+pub struct Cop<'a> {
+  facing: Direction,
+  pos: (usize, usize),
+  history: HashSet<(usize, usize)>,
+  path: HashSet<((usize, usize), Direction)>,
+  would_obstruct: HashSet<(usize, usize)>,
+  left_maze: bool,
+  forbidden_pos: (usize, usize),
+  map: &'a Map,
+}
+impl<'a> Cop<'a> {
+  pub fn new(map: &Map) -> Cop {
+    let pos = map.starting_cop_pos;
+    let history = HashSet::new();
+    let path = HashSet::new();
+    let would_obstruct = HashSet::new();
+    let map = map;
+    let facing = Direction::North;
+    let forbidden_pos = (9999, 9999);
+    let left_maze = false;
+
+    Cop { pos, history, path, map, facing, forbidden_pos, left_maze, would_obstruct }
+  }
+
+  pub fn would_obstruct(&self) -> usize {
+    self.would_obstruct.len()
+  }
+
+  pub fn warp(&mut self, pos: (usize, usize)) {
+    self.pos = pos;
+  }
+
+  pub fn look_towards(&mut self, dir: &Direction) {
+    self.facing = dir.clone();
+  }
+
+  pub fn forbid_pos(&mut self, pos: (usize, usize)) {
+    self.forbidden_pos = pos;
+  }
+
+  pub fn visited(&self) -> usize {
+    self.history.len()
+  }
+
+  pub fn walk(&mut self, is_clone: bool) {
+    loop {
+      if !is_clone {
+        report_progress(self.history.len(), self.map.grid.len());
+      };
+      self.history.insert(self.pos);
+      let cop_is_in_loop = !self.path.insert((self.pos, self.facing.clone()));
+      if cop_is_in_loop { return; };
+
+      let Some(frontal_pos) = self.facing.next(&self.pos) else {
+        self.left_maze = true;
+        return;
+      };
+      let Some(frontal_cell) = self.map.grid_value(&frontal_pos) else {
+        self.left_maze = true;
+        return;
+      };
+      
+      if frontal_cell == &'#' || frontal_pos == self.forbidden_pos {
+        self.rotate();
+        continue;
+      }
+
+      if !is_clone && frontal_pos != self.map.starting_cop_pos && self.history.get(&frontal_pos).is_none() {
+        let mut cop_clone = Cop::new(&self.map);
+        cop_clone.warp(self.pos);
+        cop_clone.forbid_pos(frontal_pos);
+        cop_clone.look_towards(&self.facing);
+        cop_clone.walk(true);
+        if !cop_clone.left_maze {
+          self.would_obstruct.insert(frontal_pos);
+        }
+      }
+
+      self.pos = frontal_pos;
+    }
+  }
+
+  fn rotate(&mut self) {
+    self.facing = match self.facing {
+      Direction::North => Direction::East,
+      Direction::East => Direction::South,
+      Direction::South => Direction::West,
+      Direction::West => Direction::North,
+    }
+  }
+}
+
 pub struct Map {
-  last_x: usize,
-  last_y: usize,
   grid: HashMap<(usize, usize), char>,
-  visited: HashSet<(usize, usize)>,
-  cop_pos: (usize, usize),
-  cop_facing: Direction,
+  starting_cop_pos: (usize, usize),
 }
 impl Map {
   pub fn new(input: &String) -> Map {
-    let last_y = input.lines().count() - 1;
-    let last_x = input.lines().next().unwrap().chars().count() - 1;
-    let cop_facing = Direction::North;
     let mut grid = HashMap::new();
-    let mut cop_pos= (0, 0);
-    let mut visited = HashSet::new();
+    let mut starting_cop_pos= (0, 0);
 
     for (y, line) in input.lines().enumerate() {
       for (x, char) in line.chars().enumerate() {
         if char == '^' {
-          cop_pos = (x, y);
-          visited.insert((x, y));
+          starting_cop_pos = (x, y);
           grid.insert((x, y), '.');
         } else {
           grid.insert((x, y), char);
@@ -61,43 +146,10 @@ impl Map {
       }
     }
 
-    Map { last_x, last_y, grid, visited, cop_pos, cop_facing }
+    Map { grid, starting_cop_pos }
   }
 
-  pub fn wait_for_cop_to_leave(&mut self) {
-    while !self.is_cop_leaving() {
-      let next_pos = self.cop_facing.next(&self.cop_pos).expect("bug in code, got pos out of bounds");
-      let collission = *self.grid.get(&next_pos).expect("pos should exist") == '#';
-      if collission {
-        self.rotate_cop();
-        continue;
-      }
-
-      self.cop_pos = self.cop_facing.next(&self.cop_pos).expect("should return");
-      self.visited.insert(self.cop_pos.clone());
-    }
-  }
-
-  pub fn visited_places(&self) -> usize {
-    self.visited.len()
-  }
-
-  // private stuff
-  fn is_cop_leaving(&self) -> bool {
-    match self.cop_facing {
-      Direction::North => self.cop_pos.1 == 0,
-      Direction::East => self.cop_pos.0 == self.last_x,
-      Direction::South => self.cop_pos.1 == self.last_y,
-      Direction::West => self.cop_pos.0 == 0,
-    }
-  }
-
-  fn rotate_cop(&mut self) {
-    self.cop_facing = match self.cop_facing {
-      Direction::North => Direction::East,
-      Direction::East => Direction::South,
-      Direction::South => Direction::West,
-      Direction::West => Direction::North,
-    };
+  pub fn grid_value(&self, pos: &(usize, usize)) -> Option<&char> {
+    self.grid.get(pos)
   }
 }

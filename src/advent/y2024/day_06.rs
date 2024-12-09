@@ -1,7 +1,7 @@
 mod map;
 
 use crate::shared::{print_solution, print_test, read_input, Color};
-use map::Map;
+use map::{Cop, Map};
 
 fn build_map(uri: &str) -> Map {
   let input = read_input(uri);
@@ -9,9 +9,10 @@ fn build_map(uri: &str) -> Map {
 }
 
 fn part_one(map: &mut Map) {
-  map.wait_for_cop_to_leave();
-  let visited_places = map.visited_places();
-  println!("Visited {} places", Color::Blue(visited_places))
+  let mut cop = Cop::new(map);
+  cop.walk(false);
+  println!("\nVisited {} places", Color::Blue(cop.visited()));
+  println!("Would be obstructed by {} places", Color::Blue(cop.would_obstruct()));
 }
 
 pub fn run() {
