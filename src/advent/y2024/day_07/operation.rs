@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 pub struct Operation {
   pub expected_result: u128,
+  operands: Vec<char>,
   components: Vec<u128>,
   solutions: HashMap<String, u128>,
 }
@@ -12,6 +13,7 @@ impl Operation {
     Operation {
       expected_result: expected.parse().expect("should be num"),
       components: numbers.split(" ").map(|s| s.parse().unwrap()).collect(),
+      operands: Vec::from(['+', '*']),
       solutions: HashMap::new(),
     }
   }
@@ -26,12 +28,13 @@ impl Operation {
       let mut new_solutions = HashMap::new();
 
       while let Some(solution) = prev_step_solutions.next() {
-        for oper in ['+', '*'] {
+        for oper in &self.operands {
           let value = self.solutions.get(solution).unwrap();
           let next_oper = format!("{solution}{oper}");
           let new_result = match oper {
             '+' => value + next,
             '*' => value * next,
+            '|' => format!("{value}{next}").parse().expect("concat should not fail"),
             _ => panic!("should not reach"),
           };
           new_solutions.insert(next_oper, new_result); 
@@ -40,6 +43,14 @@ impl Operation {
 
       self.solutions = new_solutions;
     }
+  }
+
+  pub fn reset(&mut self) {
+    self.solutions = HashMap::new();
+  }
+
+  pub fn insert_char(&mut self, char: char) {
+    self.operands.push(char);
   }
 
   pub fn is_valid(&self) -> bool {
