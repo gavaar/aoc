@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-pub enum Color <Content>
+pub enum Color<Content>
 where
   Content: Display
 {
@@ -8,6 +8,7 @@ where
   Green(Content),
   Red(Content),
   Blue(Content),
+  Default(Content),
 }
 impl<T: Display> Display for Color<T> {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -24,6 +25,7 @@ impl<T: Display> Display for Color<T> {
       &Color::Blue(content) => {
         write!(f, "{}{}{}", "\x1b[36m", content, "\x1b[39m")
       }
+      &Color::Default(content) => write!(f, "{content}"),
     }
   }
 }

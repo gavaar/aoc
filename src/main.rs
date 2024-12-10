@@ -2,6 +2,7 @@ use std::{io::{self, Write},process, env};
 
 mod advent;
 mod shared;
+mod components;
 
 fn main() {   
     let mut day_input = String::new();
