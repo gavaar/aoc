@@ -4,32 +4,75 @@ use crate::{components::{Drawable, Map2D}, shared::Color};
 
 pub struct TowerMap {
   grid: Vec<Vec<char>>,
+  pub limit_to_1: bool,
   pub anti_node_map: HashSet<(usize, usize)>,
 }
 impl TowerMap {
   pub fn new(input: &String) -> TowerMap {
     TowerMap {
+      limit_to_1: true,
       grid: TowerMap::build_from_char_text(input),
       anti_node_map: HashSet::new(),
     }
   }
 
-  pub fn get_antinodes(first: &(usize, usize), other: &(usize, usize)) -> [Option<(usize, usize)>; 2] {
-    let other_0 = other.0 as isize;
-    let other_1 = other.1 as isize;
-    let first_0 = first.0 as isize;
-    let first_1 = first.1 as isize;
+  pub fn reset(&mut self) {
+    self.anti_node_map = HashSet::new();
+  }
 
-    let diff_x = other_0 - first_0;
-    let diff_y = other_1 - first_1;
+  pub fn get_antinodes(&self, first: &(usize, usize), other: &(usize, usize)) -> Vec<(usize, usize)> {
+    let diff_x = other.0 as isize - first.0 as isize;
+    let diff_y = other.1 as isize - first.1 as isize;
     
-    let first_antinode = (first_0 - diff_x, first_1 - diff_y);
-    let second_antinode = (other_0 + diff_x, other_1 + diff_y);
+    let mut antinodes = Vec::new();
+    let mut first_antinode = (first.0, first.1);
+    let mut other_antinode = (other.0, other.1);
 
-    [
-      if first_antinode.0 < 0 || first_antinode.1 < 0 { None } else { Some((first_antinode.0 as usize, first_antinode.1 as usize)) },
-      if second_antinode.0 < 0 || second_antinode.1 < 0 { None } else { Some((second_antinode.0 as usize, second_antinode.1 as usize)) },
-    ]
+    if !self.limit_to_1 {
+      antinodes.push(first_antinode);
+      antinodes.push(other_antinode);
+    }
+
+    loop {
+      let ifirst_antinode = (first_antinode.0 as isize - diff_x, first_antinode.1 as isize - diff_y);
+
+      if ifirst_antinode.0 < 0 || ifirst_antinode.1 < 0 {
+        break;
+      }
+
+      first_antinode = (ifirst_antinode.0 as usize, ifirst_antinode.1 as usize);
+      if self.get(&first_antinode).is_none() {
+        break;
+      }
+
+      antinodes.push(first_antinode);
+
+      if self.limit_to_1 {
+        break;
+      }
+    }
+
+    loop {
+      let iother_antinode = (other_antinode.0 as isize + diff_x, other_antinode.1 as isize + diff_y);
+
+      if iother_antinode.0 < 0 || iother_antinode.1 < 0 {
+        break;
+      }
+
+      other_antinode = (iother_antinode.0 as usize, iother_antinode.1 as usize);
+
+      if self.get(&other_antinode).is_none() {
+        break;
+      }
+
+      antinodes.push(other_antinode);
+
+      if self.limit_to_1 {
+        break;
+      }
+    }
+
+    antinodes
   }
 
   pub fn build_anti_nodes(&mut self) {
@@ -48,18 +91,14 @@ impl TowerMap {
       }
     }
 
-    for (_lett, pos_list) in node_map.iter() {
+    for (_land, pos_list) in node_map.iter() {
       for x in 0..pos_list.len() {
         for y in 1 + x..pos_list.len() {
           let first_pos = pos_list.get(x).expect("cant break");
           let second_pos = pos_list.get(y).expect("cant break");
 
-          for antinode_opt in TowerMap::get_antinodes(&first_pos, &second_pos) {
-            if let Some(antinode) = antinode_opt {
-              if self.get(&antinode).is_some() {
-                self.anti_node_map.insert(antinode);
-              }
-            }
+          for antinode in self.get_antinodes(first_pos, second_pos) {
+            self.anti_node_map.insert(antinode);
           }
         }
       }
