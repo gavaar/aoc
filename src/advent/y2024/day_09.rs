@@ -1,5 +1,24 @@
 use crate::shared::{print_solution, print_test, read_input, Color};
 
+fn disk_spaces(uri: &str) -> Vec<(String, usize)> {
+  let input = read_input(uri);
+  let mut id = 0usize;
+  let mut chars = input.chars();
+  let mut disk: Vec<(String, usize)> = Vec::new();
+
+  loop {
+    let Some(file) = chars.next() else { break; };
+    let memory = chars.next().unwrap_or('0');
+
+    disk.push((id.to_string(), file.to_digit(10).unwrap() as usize));
+    disk.push(('.'.to_string(), memory.to_digit(10).unwrap() as usize));
+
+    id += 1;
+  }
+
+  disk
+}
+
 fn disk_map(uri: &str) -> Vec<String> {
   let input = read_input(uri);
   let mut chars = input.chars();
@@ -22,6 +41,61 @@ fn disk_map(uri: &str) -> Vec<String> {
   }
 
   disk
+}
+
+fn sort_spaces(disk: &mut Vec<(String, usize)>) {
+  let disk_len = disk.len().to_owned();
+  let mut dot_found = 0usize;
+  let mut num_found = disk_len - 1;
+
+  'outer: loop {
+    let mut num_value;
+    loop {
+      num_value = disk.get(num_found).expect("always exists");
+
+      if num_value.0 != '.'.to_string() {
+        break;
+      }
+
+      if num_found == 0 {
+        return;
+      }
+
+      num_found -= 1;
+    }
+
+    let mut dot_value;
+    loop {
+      dot_value = disk.get(dot_found).expect("every time works").clone();
+
+      if dot_value.0 == '.'.to_string() && dot_value.1 >= num_value.1 {
+        break;
+      }
+
+      if num_found == 0 {
+        return;
+      }
+
+      if dot_found >= num_found {
+        dot_found = 0;
+        num_found -= 1;
+        continue 'outer;
+      }
+
+      dot_found += 1;
+    }
+
+    let popped_element = disk.remove(num_found);
+    let popped_size = popped_element.1;
+    disk.insert(dot_found, popped_element);
+    dot_found += 1;
+
+    // the dot we found, has to remove it's space
+    disk.get_mut(dot_found).unwrap().1 -= popped_size;
+    disk.insert(num_found, ('.'.to_string(), popped_size));
+    
+    dot_found = 0;
+  }
 }
 
 fn sort_disk(disk_map: &mut Vec<String>) {
@@ -59,6 +133,18 @@ fn sort_disk(disk_map: &mut Vec<String>) {
   }
 }
 
+fn spaces_into_id_vec(spaces: &Vec<(String, usize)>) -> Vec<String> {
+  let mut result = Vec::new();
+
+  spaces.iter().for_each(|(id, amount)| {
+    for _x in 0..*amount {
+      result.push(id.clone());
+    }
+  });
+
+  result
+}
+
 fn checksum(sorted_disk: &Vec<String>) -> u128 {
   sorted_disk.iter().enumerate().map(|(idx, id)| {
     if *id == String::from('.') { return 0 }
@@ -73,13 +159,25 @@ fn part_one(disk_map: &mut Vec<String>) {
   println!("checksum: {}", Color::Blue(checksum));
 }
 
+fn part_two(disk_spaces: &mut Vec<(String, usize)>) {
+  sort_spaces(disk_spaces);
+  let final_disk = spaces_into_id_vec(&disk_spaces);
+  let checksum = checksum(&final_disk);
+  
+  println!("checksum: {}", Color::Blue(checksum));
+}
+
 pub fn run() {
   print_test();
   let mut test_disk_map = disk_map("day_09/test");
   part_one(&mut test_disk_map);
+  let mut test_disk_spaces = disk_spaces("day_09/test");
+  part_two(&mut test_disk_spaces);
   println!();
   
   print_solution();
   let mut disk_map = disk_map("day_09/input");
   part_one(&mut disk_map);
+  let mut disk_spaces = disk_spaces("day_09/input");
+  part_two(&mut disk_spaces);
 }
