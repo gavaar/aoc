@@ -112,10 +112,6 @@ impl Map2D for TowerMap {
   }
 }
 impl Drawable for TowerMap {
-  fn matrix_to_paint(&self) -> &Vec<Vec<impl std::fmt::Display>> {
-    &self.grid
-  }
-
   fn color_override(&self, value: impl std::fmt::Display, pos: &(usize, usize)) -> crate::shared::Color<impl std::fmt::Display> {
     if self.anti_node_map.contains(pos) {
       return Color::Blue(value);
