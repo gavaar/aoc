@@ -1,10 +1,10 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 use crate::{components::{Drawable, Map2D}, shared::report_progress};
 
 pub struct HikeMap {
   grid: Vec<Vec<char>>,
-  pub trailheads: HashMap<(usize, usize), HashSet<(usize, usize)>>,
+  pub trailheads: HashMap<(usize, usize), HashMap<(usize, usize), u32>>,
 }
 impl HikeMap {
   pub fn new(str_ref: &String) -> HikeMap {
@@ -22,7 +22,9 @@ impl HikeMap {
       let next_value = next_char.to_digit(10).unwrap();
 
       if curr_value == 8 && next_value == 9 {
-        self.trailheads.get_mut(original).unwrap().insert((next_x, next_y));
+        let trailhead = self.trailheads.get_mut(original).unwrap();
+        let next = (next_x, next_y);
+        trailhead.insert(next, trailhead.get(&next).unwrap_or(&0) + 1);
         continue;
       }
 
@@ -48,7 +50,7 @@ impl HikeMap {
         let curr_value = self.get(&(x, y)).unwrap().to_digit(10).unwrap();
         if curr_value != 0 { continue; }
 
-        self.trailheads.insert((x, y), HashSet::new());
+        self.trailheads.insert((x, y), HashMap::new());
         self.search_for_head((x, y), &(x, y));
       }
     }
