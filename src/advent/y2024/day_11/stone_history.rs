@@ -1,14 +1,19 @@
-use std::fmt::Display;
+use std::collections::HashMap;
+
+use crate::shared::report_progress;
 
 pub struct StoneHistory {
-  pub current_stones: Vec<String>,
-  history: Vec<Vec<String>>,
+  pub current_stones: HashMap<String, u128>,
 }
 impl StoneHistory {
   pub fn new(input: &String) -> StoneHistory {
+    let mut current_stones = HashMap::new();
+
+    input.split(" ").for_each(|num| {
+      current_stones.insert(num.to_string(), 1);
+    });
     StoneHistory {
-      current_stones: input.split(" ").map(|v| v.to_string()).collect(),
-      history: Vec::new(),
+      current_stones,
     }
   }
 
@@ -35,19 +40,19 @@ impl StoneHistory {
 
   pub fn blink(&mut self, amount: usize) {
     for _i in 0..amount {
-      let mut new_stone_arragenment: Vec<String> = Vec::new();
-      self.current_stones.iter().for_each(|stone| {
-        let mut new_stones = StoneHistory::transform_stone(stone);
-        new_stone_arragenment.append(&mut new_stones);
+      report_progress(_i, amount);
+      let mut new_stone_arragenment: HashMap<String, u128> = HashMap::new();
+
+      self.current_stones.iter().for_each(|(stone, amount)| {
+        let new_stones = StoneHistory::transform_stone(stone);
+
+        for new_stone in new_stones {
+          let old_value = *new_stone_arragenment.get(&new_stone).unwrap_or(&0);
+          new_stone_arragenment.insert(new_stone, old_value + amount);
+        }
       });
-      self.history.push(new_stone_arragenment.clone());
+
       self.current_stones = new_stone_arragenment;
     }
-  }
-}
-
-impl Display for StoneHistory {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    write!(f, "{}", self.current_stones.join(" "))
   }
 }
