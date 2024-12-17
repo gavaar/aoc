@@ -9,6 +9,7 @@ mod day_08;
 mod day_09;
 mod day_10;
 mod day_11;
+mod day_12;
 
 pub fn run_day(buffer: &str) {        
   if let Ok(day) = buffer.parse::<u8>() {
@@ -25,6 +26,7 @@ pub fn run_day(buffer: &str) {
     9 => day_09::run(),
     10 => day_10::run(),
     11 => day_11::run(),
+    12 => day_12::run(),
     _ => println!("We did not find that day\n"),
    }
   } else {
