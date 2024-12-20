@@ -1,11 +1,11 @@
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use crate::components::Map2D;
 
-#[derive(Debug)]
 pub struct Plot {
   land_letter: char,
   lands: HashSet<(usize, usize)>,
   perimeter: HashSet<String>,
+  side_list: Vec<String>,
 }
 impl Plot {
   pub fn new(land: &char) -> Plot {
@@ -13,6 +13,7 @@ impl Plot {
       land_letter: *land,
       lands: HashSet::new(),
       perimeter: HashSet::new(),
+      side_list: Vec::new(),
     }
   }
 
@@ -22,6 +23,58 @@ impl Plot {
 
   pub fn price(&self) -> u32 {
     self.perimeter.len() as u32 * self.lands.len() as u32
+  }
+
+  pub fn side_price(&self) -> u32 {
+    let sides = self.side_list.len() as u32;
+    self.lands.len() as u32 * sides
+  }
+
+  pub fn calc_sides(&mut self) {
+    let mut sides: HashMap<String, Vec<u32>> = HashMap::new();
+    self.perimeter.iter().for_each(|perimeter| {
+      let (pos, dir) = perimeter.split_once("-").unwrap();
+      let (x, y) = pos.split_once(",").unwrap();
+      let (pivot_axis, value_axis) = match dir {
+        "left" | "right" => (x, y),
+        "top" | "bot" => (y, x),
+        _ => panic!("should not"),
+      };
+      let axis_key = format!("{dir}_{pivot_axis}");
+      if !sides.contains_key(axis_key.as_str()) {
+        sides.insert(axis_key.to_owned(), Vec::new());
+      }
+
+      sides.get_mut(&axis_key).unwrap().push(value_axis.parse().unwrap());
+    });
+
+    for (side_name, side_lands) in &mut sides {
+      side_lands.sort();
+      let mut side_idx = 0;
+      let mut side_idx_name = format!("{side_name}_0");
+      let mut filler = false;
+      let mut current_expected = *side_lands.first().unwrap();
+      let last = *side_lands.last().unwrap();
+
+      while current_expected <= last {
+        if !self.side_list.contains(&side_idx_name) {
+          self.side_list.push(side_idx_name.to_owned());
+        }
+
+        if !side_lands.contains(&current_expected) && !filler {
+          filler = true;
+        }
+        
+        if filler && side_lands.contains(&current_expected) {
+          filler = false;
+          side_idx += 1;
+          side_idx_name = format!("{side_name}_{side_idx}");
+          continue;
+        }
+
+        current_expected += 1;
+      }
+    }
   }
 }
 
@@ -63,20 +116,11 @@ impl Farm {
     for dir in ["left", "top", "right", "bot"] {
       let next_dir = self.get_at_dir(pos, dir);
       if next_dir.is_none() {
-        // let imaginary_pos = match dir {
-        //   "left" => format!("{},{}", pos.0 as isize - 1, pos.1),
-        //   "right" => format!("{},{}", pos.0 + 1, pos.1),
-        //   "top" => format!("{},{}", pos.0, pos.1 as isize - 1),
-        //   "bot" => format!("{},{}", pos.0, pos.1 + 1),
-        //   _ => panic!("this will never be true"),
-        // };
-        // plot.perimeter.insert(imaginary_pos);
         plot.perimeter.insert(format!("{},{}-{}", pos.0, pos.1, dir));
         continue;
       }
       let (nx, ny, nc) = next_dir.unwrap();
       if nc != plot.land_letter {
-        // plot.perimeter.insert(format!("{},{}", nx, ny));
         plot.perimeter.insert(format!("{},{}-{}", pos.0, pos.1, dir));
         continue;
       }
