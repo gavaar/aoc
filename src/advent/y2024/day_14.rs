@@ -1,13 +1,15 @@
 mod robot;
 
-use core::panic;
-use std::{collections::HashSet, iter};
+// use core::panic;
+use std::{collections::HashSet,
+  // iter
+};
 
 use crate::{components::{Drawable, Map2D}, shared::{print_solution, print_test, read_input, Color}};
 
 use robot::Robot;
 
-const TEST_MAP_SIZE: (usize, usize) = (11, 7);
+// const TEST_MAP_SIZE: (usize, usize) = (11, 7);
 const MAP_SIZE: (usize, usize) = (101, 103);
 
 struct Map {
@@ -35,33 +37,33 @@ impl Drawable for Map {
   }
 }
 
-fn get_quadrants(robots: &Vec<Robot>) -> [usize; 4] {
-  let mut quadrants = [0; 4];
+// fn get_quadrants(robots: &Vec<Robot>) -> [usize; 4] {
+//   let mut quadrants = [0; 4];
   
-  robots.iter().for_each(|robot| {
-    let frontier_x = (robot.teleport_x - 1) / 2;
-    let frontier_y = (robot.teleport_y - 1) / 2;
+//   robots.iter().for_each(|robot| {
+//     let frontier_x = (robot.teleport_x - 1) / 2;
+//     let frontier_y = (robot.teleport_y - 1) / 2;
 
-    if robot.x() == frontier_x || robot.y() == frontier_y {
-      return;
-    }
+//     if robot.x() == frontier_x || robot.y() == frontier_y {
+//       return;
+//     }
 
-    let quadrant: usize = 
-      // top-left quadrant
-      if robot.x() < frontier_x && robot.y() < frontier_y { 0 }
-      // top-right quadrant
-      else if robot.x() > frontier_x && robot.y() < frontier_y { 1 }
-      // bot-left quadrant
-      else if robot.x() < frontier_x && robot.y() > frontier_y { 2 }
-      // bot-right quadrant
-      else if robot.x() > frontier_x && robot.y() > frontier_y { 3 }
-      else { panic!("should not happen") };
+//     let quadrant: usize = 
+//       // top-left quadrant
+//       if robot.x() < frontier_x && robot.y() < frontier_y { 0 }
+//       // top-right quadrant
+//       else if robot.x() > frontier_x && robot.y() < frontier_y { 1 }
+//       // bot-left quadrant
+//       else if robot.x() < frontier_x && robot.y() > frontier_y { 2 }
+//       // bot-right quadrant
+//       else if robot.x() > frontier_x && robot.y() > frontier_y { 3 }
+//       else { panic!("should not happen") };
 
-    *quadrants.get_mut(quadrant).unwrap() += 1;
-  });
+//     *quadrants.get_mut(quadrant).unwrap() += 1;
+//   });
 
-  quadrants
-}
+//   quadrants
+// }
 
 fn build_robots(uri: &str, size: &(usize, usize)) -> Vec<Robot> {
   let input = read_input(uri);
@@ -69,12 +71,12 @@ fn build_robots(uri: &str, size: &(usize, usize)) -> Vec<Robot> {
   robots
 }
 
-fn part_one(robots: &mut Vec<Robot>) {
-  robots.iter_mut().for_each(|robot| robot.walk(100));
-  let quadrants = get_quadrants(robots);
-  let mult = quadrants.iter().fold(1, |acc, x| acc * x);
-  println!("The safety factor is {}", Color::Blue(mult));
-}
+// fn part_one(robots: &mut Vec<Robot>) {
+//   robots.iter_mut().for_each(|robot| robot.walk(100));
+//   let quadrants = get_quadrants(robots);
+//   let mult = quadrants.iter().fold(1, |acc, x| acc * x);
+//   println!("The safety factor is {}", Color::Blue(mult));
+// }
 
 fn part_two(robots: &mut Vec<Robot>, size: &(usize, usize)) {
   let middle = (size.0 - 1) / 2;
