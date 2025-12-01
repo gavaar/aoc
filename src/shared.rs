@@ -4,7 +4,7 @@ mod color;
 mod report_progress;
 pub use color::Color;
 pub use report_progress::report_progress;
-pub const YEAR: u16 = 2024;
+pub const YEAR: u16 = 2025;
 
 pub fn read_input(uri: &str) -> String {
   let url = format!("src/advent/y{YEAR}/{}", uri);
