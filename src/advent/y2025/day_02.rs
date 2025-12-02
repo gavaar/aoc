@@ -2,9 +2,23 @@ use crate::shared::{Color, print_test, read_input, report_progress};
 
 fn is_number_invalid(number: u128) -> bool {
   let num_str = number.to_string();
-  let (first_half, second_half) = num_str.split_at(num_str.len() / 2);
+  // part 1
+  // let (first_half, second_half) = num_str.split_at(num_str.len() / 2);
 
-  return first_half == second_half;
+  // return first_half == second_half;
+
+  let num_str_half = num_str.len() / 2;
+
+  for pattern_idx in 1..=num_str_half {
+    let patterned = num_str.split_at(pattern_idx).0;
+    if num_str.len() % patterned.len() != 0 { continue; }
+    let repeat = num_str.len() / patterned.len();
+    if patterned.repeat(repeat) == num_str {
+      return true;
+    }
+  }
+
+  return  false;
 }
 
 fn get_wrong_ranges(start: u128, end: u128, report: &mut (usize, usize)) -> Vec<u128> {
