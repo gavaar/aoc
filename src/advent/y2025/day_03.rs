@@ -28,6 +28,20 @@ impl Bank {
 
     return format!("{first_number}{second_number}").parse::<u8>().expect("parsed number seems to not be a number");
   }
+
+  pub fn joltage_overriden(&self) -> u128 {
+    let mut found = vec![];
+    let mut next_start = 0;
+
+    for idx in (0..12).rev() {
+      let battery_slice = &self.batteries[next_start..&self.batteries.len() - idx];
+      let (nex_start_idx, biggest_num) = find_biggest_possible_at_index(battery_slice);
+      next_start += nex_start_idx + 1;
+      found.push(biggest_num);
+    }
+
+    found.iter().map(|n| n.to_string()).collect::<Vec<String>>().join("").parse::<u128>().expect("found list did not make a number")
+  }
 }
 
 fn build_batteries(uri: &str) -> Vec<Bank> {
@@ -46,6 +60,12 @@ pub fn run() {
   }).sum::<u128>();
   println!("Total joltage: {}", Color::Yellow(total_output_joltage));
 
+  let overriden_joltage = test_batteries.iter().enumerate().map(|(r_idx, bat)| {
+    report_progress(r_idx, total);
+    return bat.joltage_overriden();
+  }).sum::<u128>();
+  println!("Total OVERLOADED joltage: {}", Color::Red(overriden_joltage));
+
   println!();
   
   print_solution();
@@ -57,4 +77,10 @@ pub fn run() {
     return bat.joltage() as u128;
   }).sum::<u128>();
   println!("Total joltage: {}", Color::Yellow(total_output_joltage));
+
+  let overriden_joltage = batteries.iter().enumerate().map(|(r_idx, bat)| {
+    report_progress(r_idx, total);
+    return bat.joltage_overriden();
+  }).sum::<u128>();
+  println!("Total OVERLOADED joltage: {}", Color::Red(overriden_joltage));
 }
