@@ -1,4 +1,7 @@
 pub mod drawable;
+pub mod map_2d_direction;
+
+use map_2d_direction::Map2DDirection;
 
 pub trait Map2D {
   fn grid_map(&self) -> &Vec<Vec<char>>;
@@ -21,35 +24,39 @@ pub trait Map2D {
     self.grid_map().get(pos.1).and_then(|row| row.get(pos.0))
   }
 
-  fn get_at_dir(&self, curr: &(usize, usize), dir: &str) -> Option<(usize, usize, char)> {
-    match dir {
-      "left" => {
-        if curr.0 == 0 { return None };
-        let Some(pos_value) = self.get(&(curr.0 - 1, curr.1)) else {
-          return None;
-        };
-        Some((curr.0 - 1, curr.1, *pos_value))
+  fn get_at_dir(&self, curr: &(usize, usize), dir: &Map2DDirection) -> Option<(usize, usize, char)> {
+    let next_x = match dir {
+      Map2DDirection::NW | Map2DDirection::SW | Map2DDirection::W => {
+        if curr.0 == 0 { return None }
+        curr.0 - 1
       }
-      "right" => {
-        let Some(pos_value) = self.get(&(curr.0 + 1, curr.1)) else {
-          return None;
-        };
-        Some((curr.0 + 1, curr.1, *pos_value))
+      Map2DDirection::NE | Map2DDirection::SE | Map2DDirection::E => {
+        curr.0 + 1
       }
-      "top" => {
-        if curr.1 == 0 { return None };
-        let Some(pos_value) = self.get(&(curr.0, curr.1 - 1)) else {
-          return None;
-        };
-        Some((curr.0, curr.1 - 1, *pos_value))
+      _ => curr.0
+    };
+    let next_y = match dir {
+      Map2DDirection::NE | Map2DDirection::NW | Map2DDirection::N => {
+        if curr.1 == 0 { return None }
+        curr.1 - 1
       }
-      "bot" => {
-        let Some(pos_value) = self.get(&(curr.0, curr.1 + 1)) else {
-          return None;
-        };
-        Some((curr.0, curr.1 + 1, *pos_value))
+      Map2DDirection::SE | Map2DDirection::SW | Map2DDirection::S => {
+        curr.1 + 1
       }
-      _ => panic!("dir has to be either: top, left, right, or bot"),
-    }
+      _ => curr.1
+    };
+
+    let Some(pos_value) = self.get(&(next_x, next_y)) else {
+      return None;
+    };
+
+    Some((next_x, next_y, *pos_value))
+  }
+
+  fn rows(&self) -> usize {
+    self.grid_map().len()
+  }
+  fn cols(&self) -> usize {
+    self.grid_map().get(0).unwrap_or(&vec![]).len()
   }
 }

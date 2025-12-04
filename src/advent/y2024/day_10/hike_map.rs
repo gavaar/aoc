@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{components::{Drawable, Map2D}, shared::report_progress};
+use crate::{components::{Drawable, Map2D, Map2DDirection}, shared::report_progress};
 
 pub struct HikeMap {
   grid: Vec<Vec<char>>,
@@ -16,7 +16,7 @@ impl HikeMap {
 
   fn search_for_head(&mut self, (x, y): (usize, usize), original: &(usize, usize)) {
     let curr_value = self.get(&(x, y)).unwrap().to_digit(10).unwrap();
-    for value in ["top", "right", "bot", "left"].map(|dir| self.get_at_dir(&(x, y), dir)) {
+    for value in Map2DDirection::get_vert_horiz_dirs().map(|dir| self.get_at_dir(&(x, y), &dir)) {
       if value.is_none() { continue; };
       let (next_x, next_y, next_char) = value.unwrap();
       let next_value = next_char.to_digit(10).unwrap();

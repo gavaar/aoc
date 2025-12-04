@@ -1,5 +1,5 @@
 use std::collections::{HashMap, HashSet};
-use crate::components::Map2D;
+use crate::components::{Map2D, Map2DDirection};
 
 pub struct Plot {
   land_letter: char,
@@ -113,8 +113,8 @@ impl Farm {
     plot.lands.insert((pos.0, pos.1));
     self.farmed_pos.insert((pos.0, pos.1));
 
-    for dir in ["left", "top", "right", "bot"] {
-      let next_dir = self.get_at_dir(pos, dir);
+    for dir in Map2DDirection::get_vert_horiz_dirs() {
+      let next_dir = self.get_at_dir(pos, &dir);
       if next_dir.is_none() {
         plot.perimeter.insert(format!("{},{}-{}", pos.0, pos.1, dir));
         continue;
