@@ -27,6 +27,46 @@ impl MathInput {
     MathInput { problems }
   }
 
+  pub fn new_cephalod(input: &String) -> Self {
+    let mut lines = input.lines();
+    let mut columns: Vec<String> = Vec::new();
+
+    for line in lines.by_ref().take_while(|line| !line.contains("*") && !line.contains("+")) {
+      for (idx, char) in line.chars().rev().enumerate() {
+        if columns.get(idx).is_none() {
+          columns.insert(idx, String::new());
+        }
+        columns[idx].push(char);
+      }
+    }
+
+    let mut operands = input.lines().last().unwrap().split("").filter(|v| !v.trim().is_empty()).collect::<Vec<&str>>();
+    operands.reverse();
+
+    let mut current_idx = 0;
+    let mut problems: Vec<Vec<String>> = Vec::new();
+
+    for col in columns {
+      let trimmed = col.trim();
+
+      if trimmed.is_empty() {
+        current_idx += 1;
+        continue;
+      }
+
+      if problems.get(current_idx).is_none() {
+        problems.insert(current_idx, Vec::new());
+      }
+      problems[current_idx].push(trimmed.to_string());
+    }
+
+    for (idx, op) in operands.iter().enumerate() {
+      problems[idx].push(op.to_string());
+    }
+
+    MathInput { problems }
+  }
+
   pub fn do_math(&self) -> Vec<u128> {
     self.problems.iter()
       .map(|problem| {
@@ -46,6 +86,9 @@ pub fn run() {
   let test_math = MathInput::new(&test_input);
   let test_results = test_math.do_math();
   println!("Homework sum: {}", Color::Blue(test_results.iter().sum::<u128>()));
+  let test_ceph_math = MathInput::new_cephalod(&test_input);
+  let test_ceph_results = test_ceph_math.do_math();
+  println!("Homework sum: {}", Color::Blue(test_ceph_results.iter().sum::<u128>()));
   println!();
   
   print_solution();
@@ -53,5 +96,7 @@ pub fn run() {
   let math = MathInput::new(&input);
   let results = math.do_math();
   println!("Homework sum: {}", Color::Blue(results.iter().sum::<u128>()));
-  println!();
+  let ceph_math = MathInput::new_cephalod(&input);
+  let ceph_results = ceph_math.do_math();
+  println!("Homework sum: {}", Color::Blue(ceph_results.iter().sum::<u128>()));
 }
