@@ -130,7 +130,7 @@ impl Farm {
   }
 }
 
-impl Map2D for Farm {
+impl Map2D<char> for Farm {
   fn grid_map(&self) -> &Vec<Vec<char>> {
     &self.grid
   }

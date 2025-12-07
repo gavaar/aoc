@@ -14,7 +14,7 @@ impl PrintingDpt {
     }
   }
 }
-impl Map2D for PrintingDpt {
+impl Map2D<char> for PrintingDpt {
   fn grid_map(&self) -> &Vec<Vec<char>> {
     &self.grid_map
   }

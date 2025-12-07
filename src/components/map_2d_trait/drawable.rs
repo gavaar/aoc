@@ -2,7 +2,7 @@ use std::fmt::Display;
 use crate::shared::Color;
 use super::Map2D;
 
-pub trait Drawable: Map2D {
+pub trait Drawable<T: From<char> + Display + Copy>: Map2D<T> {
   fn color_override(&self, value: impl Display, _pos: &(usize, usize)) -> Color<impl Display> {
     Color::Default(value)
   }

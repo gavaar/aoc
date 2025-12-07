@@ -22,12 +22,12 @@ impl Map {
     Map { grid }
   }
 }
-impl Map2D for Map {
+impl Map2D<char> for Map {
   fn grid_map(&self) -> &Vec<Vec<char>> {
     &self.grid
   }
 }
-impl Drawable for Map {
+impl Drawable<char> for Map {
   fn color_override(&self, value: impl std::fmt::Display, _pos: &(usize, usize)) -> Color<impl std::fmt::Display> {
     if value.to_string().as_str() != "." {
       return Color::Green(value);

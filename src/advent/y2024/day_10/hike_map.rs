@@ -57,9 +57,9 @@ impl HikeMap {
     println!();
   }
 }
-impl Map2D for HikeMap {
+impl Map2D<char> for HikeMap {
   fn grid_map(&self) -> &Vec<Vec<char>> {
     &self.grid
   }
 }
-impl Drawable for HikeMap {}
+impl Drawable<char> for HikeMap {}
