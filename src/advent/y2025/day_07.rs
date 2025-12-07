@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 use crate::{
   components::{Map2D, Map2DDirection},
@@ -54,14 +54,71 @@ fn part_one(tm: &TachyonManifold) {
   println!("The beam splitted {} times", Color::Red(splitted));
 }
 
+fn part_two(tm: &TachyonManifold) {
+  let start = tm.find(|unit| unit == &'S').expect("an S should be found");
+  let mut beam_positions = HashSet::<(usize, usize)>::new();
+  let mut beam_timelines = HashMap::<(usize, usize), usize>::new();
+  beam_positions.insert(start);
+
+  loop {
+    if beam_positions.is_empty() { break; }
+
+    let mut new_positions = HashSet::new();
+
+    for pos in beam_positions.drain() {
+      let prev_timelines = beam_timelines.remove(&pos).unwrap_or(1);
+
+      let Some((next_x, next_y, next_val)) = tm.get_at_dir(&pos, &Map2DDirection::S) else {
+        beam_timelines.insert(pos, prev_timelines);
+        continue;
+      };
+
+      if next_val == '.' {
+        new_positions.insert((next_x, next_y));
+        let new_tls = match beam_timelines.get(&(next_x, next_y)) {
+          Some(tl) => *tl + prev_timelines,
+          None => prev_timelines,
+        };
+        beam_timelines.insert((next_x, next_y), new_tls);
+      }
+      if next_val == '^' {
+        if let Some((west_x, west_y, _)) = tm.get_at_dir(&(next_x, next_y), &Map2DDirection::W) {
+          new_positions.insert((west_x, west_y));
+          
+          let new_tls = match beam_timelines.get(&(west_x, west_y)) {
+            Some(tl) => *tl + prev_timelines,
+            None => prev_timelines,
+          };
+          beam_timelines.insert((west_x, west_y), new_tls);
+        }
+        if let Some((east_x, east_y, _)) = tm.get_at_dir(&(next_x, next_y), &Map2DDirection::E) {
+          new_positions.insert((east_x, east_y));
+          let new_tls = match beam_timelines.get(&(east_x, east_y)) {
+            Some(tl) => *tl + prev_timelines,
+            None => prev_timelines,
+          };
+          beam_timelines.insert((east_x, east_y), new_tls);
+        }
+      }
+    }
+
+    beam_positions = new_positions;
+  }
+
+  let splitted = beam_timelines.values().map(|v| *v).reduce(|acc, tl| acc + tl).expect("should be good");
+  println!("The beam splitted {} times", Color::Red(splitted));
+}
+
 pub fn run() {
   print_test();
   let tachyon_manifold = TachyonManifold::new(&read_input("day_07/test"));
   part_one(&tachyon_manifold);
-
+  part_two(&tachyon_manifold);
+  
   println!();
-
+  
   print_solution();
   let tms = TachyonManifold::new(&read_input("day_07/input"));
   part_one(&tms);
+  part_two(&tms);
 }
