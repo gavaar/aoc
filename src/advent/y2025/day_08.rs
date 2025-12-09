@@ -2,7 +2,7 @@ use std::collections::{HashMap, HashSet};
 
 use num::integer::sqrt;
 
-use crate::shared::{print_solution, print_test, read_input};
+use crate::shared::{Color, print_solution, print_test, read_input};
 
 fn get_junctions_key(a: &(usize, usize, usize), b: &(usize, usize, usize)) -> ((usize, usize, usize), (usize, usize, usize)) {
   let a_sum = a.0 + a.1 + a.2;
@@ -57,7 +57,8 @@ impl UndergroundSpace {
     }
   }
 
-  pub fn make_x_circuits(&self, x: usize) -> HashSet::<Vec<(usize, usize, usize)>> {
+  // (<circuit set>, <points>)
+  pub fn make_x_circuits(&self, x: usize) -> (HashSet::<Vec<(usize, usize, usize)>>, ((usize, usize, usize), (usize, usize, usize))) {
     let mut starting_circuits = HashSet::<Vec<(usize, usize, usize)>>::from_iter(
       self.junction_boxes.iter().map(|jb| {
         let mut set = Vec::<(usize, usize, usize)>::new();
@@ -68,7 +69,9 @@ impl UndergroundSpace {
 
     let mut distances: Vec<(&((usize,usize,usize), (usize,usize,usize)), &u128)> = self.distance_map.iter().collect();
     distances.sort_by(|(_, distance_a), (_, distance_b)| distance_a.cmp(distance_b));
-    let (sorted_distances, _) = distances.split_at(x);
+    let (sorted_distances, _) = if x > 0 { distances.split_at(x) } else { distances.split_at(distances.len()) };
+
+    let mut last_two_connections = ((0,0,0),(0,0,0));
 
     for ((jb_a, jb_b), _distance) in sorted_distances {
       let mut circuit_a = starting_circuits
@@ -89,29 +92,44 @@ impl UndergroundSpace {
       starting_circuits.remove(&circuit_b);
       circuit_a.append(&mut circuit_b);
       starting_circuits.insert(circuit_a);
+
+      if x == 0 && starting_circuits.len() == 1 {
+        last_two_connections = (*jb_a, *jb_b);
+        break;
+      }
     }
 
-    starting_circuits
+    (starting_circuits, last_two_connections)
   }
 }
 
 fn part_one(uri: &str, reps: usize) {
   let url = format!("day_08/{uri}");
   let ug_space = UndergroundSpace::new(url.as_str());
-  let circuits = ug_space.make_x_circuits(reps);
+  let (circuits, _) = ug_space.make_x_circuits(reps);
   let mut sorted_circuits: Vec<usize> = circuits.iter().map(|c| c.len()).collect();
   sorted_circuits.sort_by(|a,b| b.cmp(a));
   let biggest_three: u128 = sorted_circuits.split_at(3).0.iter().map(|v| *v as u128).product();
 
-  println!("sizes: {}", biggest_three);
+  println!("sizes: {}", Color::Green(biggest_three));
+}
+
+fn part_two(uri: &str) {
+  let url = format!("day_08/{uri}");
+  let ug_space = UndergroundSpace::new(url.as_str());
+  let (_circuits, last_two) = ug_space.make_x_circuits(0);
+
+  println!("last two: {}", Color::Green(last_two.0.0 * last_two.1.0));
 }
 
 pub fn run() {
   print_test();
   part_one("test", 10);
+  part_two("test");
 
   println!();
 
   print_solution();
   part_one("input", 1000);
+  part_two("input");
 }
